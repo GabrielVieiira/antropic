@@ -1,0 +1,2 @@
+from .contratos_filiais import ContratoFiliaisSerializer
+from .contratos_contratantes import ContratoContratanteSerializer

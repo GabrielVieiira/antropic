@@ -1,0 +1,3 @@
+from .empresas_cnpj import EmpresaCNPJInSerializer, EmpresaCNPJOutSerializer
+from .contratantes import ContratanteInSerializer, ContratanteOutSerializer
+from .filiais import FilialInSerializer, FilialOutSerializer

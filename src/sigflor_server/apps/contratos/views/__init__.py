@@ -1,0 +1,2 @@
+from .contratos_contratantes import ContratoContratanteViewSet
+from .contratos_filiais import ContratoFiliaisViewSet
