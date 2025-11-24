@@ -122,14 +122,14 @@ Usuário pode alterar:
 ## 7. Endpoints (API)
 
 ### Base
-`/api/internal/contratantes/`
+`/api/empresas/contratantes/`
 
 
 ---
 
 ### 7.1 Listar
 
-**GET** `/api/internal/contratantes/`
+**GET** `/api/empresas/contratantes/`
 
 Filtros possíveis:
 - `ativo=true|false`
@@ -141,13 +141,13 @@ Filtros possíveis:
 
 ### 7.2 Obter por ID
 
-**GET** `/api/internal/contratantes/{id}/`
+**GET** `/api/empresas/contratantes/{id}/`
 
 ---
 
 ### 7.3 Criar Contratante
 
-**POST** `/api/internal/contratantes/`
+**POST** `/api/empresas/contratantes/`
 
 Exemplo:
 
@@ -169,7 +169,7 @@ Backend deve:
 
 ### 7.4 Editar Contratante
 
-**PATCH** `/api/internal/contratantes/{id}/`
+**PATCH** `/api/empresas/contratantes/{id}/`
 
 ### 7.5 Alterar status (ativar/desativar)
 ```json
@@ -180,7 +180,7 @@ Backend deve:
 
 ### 7.6 Excluir (Soft Delete)
 
-**DELETE** `/api/internal/contratantes/{id}/`
+**DELETE** `/api/empresas/contratantes/{id}/`
 
 ## 8. Erros e Exceções
 Código	Mensagem	                        Motivo

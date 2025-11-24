@@ -1,4 +1,4 @@
-# Módulo internal — Empresas (CNPJ do Grupo)
+# Módulo empresas — Empresas (CNPJ do Grupo)
 
 ## 1. Visão Geral
 
@@ -146,14 +146,14 @@ A empresa permanece no histórico, preservando:
 ## 7. Endpoints (API)
 
 ### Base
-`/api/internal/empresas-cnpj/`
+`/api/empresas/empresas-cnpj/`
 
 
 ---
 
 ### 7.1 Listar Empresas
 
-**GET** `/api/internal/empresas-cnpj/`
+**GET** `/api/empresas/empresas-cnpj/`
 
 Filtros:
 - `ativa=true|false`
@@ -168,7 +168,7 @@ Filtros:
 
 ### 7.2 Obter Empresa pelo ID
 
-**GET** `/api/internal/empresas-cnpj/{id}/`
+**GET** `/api/empresas/empresas-cnpj/{id}/`
 
 Retorna:
 - dados da empresa  
@@ -180,7 +180,7 @@ Retorna:
 
 ### 7.3 Criar EmpresaCNPJ
 
-**POST** `/api/internal/empresas-cnpj/`
+**POST** `/api/empresas/empresas-cnpj/`
 
 Exemplo:
 
@@ -198,11 +198,11 @@ Exemplo:
 
 ### 7.4 Atualizar
 
-**PATCH** `/api/internal/empresas-cnpj/{id}/`
+**PATCH** `/api/empresas/empresas-cnpj/{id}/`
 
 ### 7.5 Excluir (Soft Delete)
 
-**DELETE** `/api/internal/empresas-cnpj/{id}/`
+**DELETE** `/api/empresas/empresas-cnpj/{id}/`
 
 ## 8. Erros e Exceções
 Código	Mensagem	                                       Motivo
