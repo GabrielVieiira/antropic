@@ -1,4 +1,3 @@
-from multiprocessing import allow_connection_pickling
 from rest_framework import serializers
 from .models import Endereco
 
