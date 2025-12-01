@@ -123,8 +123,8 @@ class PessoaFisicaAdmin(admin.ModelAdmin):
 
 @admin.register(PessoaJuridica)
 class PessoaJuridicaAdmin(admin.ModelAdmin):
-    list_display = ['razao_social', 'nome_fantasia', 'cnpj_formatado', 'situacao_cadastral', 'porte']
-    list_filter = ['situacao_cadastral', 'porte', 'created_at']
+    list_display = ['razao_social', 'nome_fantasia', 'cnpj_formatado', 'situacao_cadastral']
+    list_filter = ['situacao_cadastral', 'created_at']
     search_fields = ['razao_social', 'nome_fantasia', 'cnpj']
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at']
     ordering = ['razao_social']
@@ -245,8 +245,8 @@ class PapelAdmin(admin.ModelAdmin):
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
-    list_display = ['get_razao_social', 'get_cnpj', 'ativa', 'matriz', 'created_at']
-    list_filter = ['ativa', 'matriz', 'created_at']
+    list_display = ['get_razao_social', 'get_cnpj', 'ativa', 'created_at']
+    list_filter = ['ativa', 'created_at']
     search_fields = ['pessoa_juridica__razao_social', 'pessoa_juridica__cnpj']
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at']
     raw_id_fields = ['pessoa_juridica']
@@ -259,7 +259,7 @@ class EmpresaAdmin(admin.ModelAdmin):
             'fields': ('pessoa_juridica', 'descricao')
         }),
         ('Status', {
-            'fields': ('ativa', 'matriz')
+            'fields': ('ativa',)
         }),
         ('Auditoria', {
             'fields': ('id', 'created_at', 'updated_at', 'deleted_at'),
@@ -317,8 +317,8 @@ class ClienteAdmin(admin.ModelAdmin):
 
 @admin.register(Endereco)
 class EnderecoAdmin(admin.ModelAdmin):
-    list_display = ['logradouro', 'numero', 'cidade', 'estado', 'cep_formatado', 'principal']
-    list_filter = ['estado', 'principal', 'created_at']
+    list_display = ['logradouro', 'numero', 'cidade', 'estado', 'cep_formatado']
+    list_filter = ['estado', 'created_at']
     search_fields = ['logradouro', 'bairro', 'cidade', 'cep']
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at']
     ordering = ['-created_at']
@@ -341,15 +341,15 @@ class EnderecoAdmin(admin.ModelAdmin):
 
 @admin.register(Contato)
 class ContatoAdmin(admin.ModelAdmin):
-    list_display = ['tipo', 'valor', 'principal']
-    list_filter = ['tipo', 'principal', 'created_at']
+    list_display = ['tipo', 'valor']
+    list_filter = ['tipo', 'created_at']
     search_fields = ['valor']
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at']
     ordering = ['-created_at']
 
     fieldsets = (
         ('Dados do Contato', {
-            'fields': ('tipo', 'valor', 'principal')
+            'fields': ('tipo', 'valor')
         }),
         ('Auditoria', {
             'fields': ('id', 'created_at', 'updated_at', 'deleted_at'),
@@ -362,18 +362,18 @@ class ContatoAdmin(admin.ModelAdmin):
 
 @admin.register(Documento)
 class DocumentoAdmin(admin.ModelAdmin):
-    list_display = ['tipo', 'descricao', 'data_validade', 'vencido', 'principal']
-    list_filter = ['tipo', 'principal', 'created_at']
+    list_display = ['tipo', 'descricao', 'data_validade', 'vencido']
+    list_filter = ['tipo', 'created_at']
     search_fields = ['tipo', 'descricao']
-    readonly_fields = ['id', 'vencido', 'nome_arquivo', 'created_at', 'updated_at', 'deleted_at']
+    readonly_fields = ['id', 'vencido', 'nome_original', 'created_at', 'updated_at', 'deleted_at']
     ordering = ['-created_at']
 
     fieldsets = (
         ('Dados do Documento', {
-            'fields': ('tipo', 'descricao', 'arquivo', 'nome_arquivo')
+            'fields': ('tipo', 'descricao', 'arquivo', 'nome_original')
         }),
         ('Validade', {
-            'fields': ('data_emissao', 'data_validade', 'vencido', 'principal')
+            'fields': ('data_emissao', 'data_validade', 'vencido')
         }),
         ('Auditoria', {
             'fields': ('id', 'created_at', 'updated_at', 'deleted_at'),

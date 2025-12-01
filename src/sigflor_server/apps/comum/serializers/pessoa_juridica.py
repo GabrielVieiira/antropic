@@ -91,9 +91,9 @@ class PessoaJuridicaCreateSerializer(serializers.Serializer):
     )
     observacoes = serializers.CharField(required=False, allow_blank=True)
 
-    enderecos = PessoaJuridicaEnderecoSerializer(many=True, required=False, allow_empty=True, source='enderecos_vinculados')
-    contatos = PessoaJuridicaContatoSerializer(many=True, required=False, allow_empty=True, source='contatos_vinculados')
-    documentos = PessoaJuridicaDocumentoSerializer(many=True, required=False, allow_empty=True, source='documentos_vinculados')
+    enderecos = PessoaJuridicaEnderecoNestedSerializer(many=True, required=False, allow_empty=True, source='enderecos_vinculados')
+    contatos = PessoaJuridicaContatoNestedSerializer(many=True, required=False, allow_empty=True, source='contatos_vinculados')
+    documentos = PessoaJuridicaDocumentoNestedSerializer(many=True, required=False, allow_empty=True, source='documentos_vinculados')
     anexos = AnexoNestedSerializer(many=True, required=False, allow_empty=True)
 
     def validate_cnpj(self, value):

@@ -200,8 +200,8 @@ yarn-error.log
 docker-compose.override.yml
 
 # Migrations (optional - uncomment if you don't want to track migrations)
-# */migrations/*.py
-# !*/migrations/__init__.py
+migrations/
+!*/migrations/__init__.py
 
 # Coverage reports
 .coveragerc

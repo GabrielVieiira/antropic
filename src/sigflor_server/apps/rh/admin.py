@@ -19,8 +19,8 @@ class CargoDocumentoInline(admin.TabularInline):
 class AlocacaoInline(admin.TabularInline):
     model = Alocacao
     extra = 0
-    fields = ['projeto', 'data_inicio', 'data_fim', 'is_ativa']
-    readonly_fields = ['is_ativa']
+    fields = ['projeto', 'data_inicio', 'data_fim', 'observacoes']
+    readonly_fields = ['observacoes']
     raw_id_fields = ['projeto']
 
 
@@ -42,8 +42,7 @@ class DependenteInline(admin.TabularInline):
 class EquipeFuncionarioInline(admin.TabularInline):
     model = EquipeFuncionario
     extra = 0
-    fields = ['funcionario', 'data_entrada', 'data_saida', 'is_ativo']
-    readonly_fields = ['is_ativo']
+    fields = ['funcionario', 'data_entrada', 'data_saida']
     raw_id_fields = ['funcionario']
 
 
@@ -221,11 +220,10 @@ class AlocacaoAdmin(admin.ModelAdmin):
         'projeto',
         'data_inicio',
         'data_fim',
-        'is_ativa',
+        'observacoes',
         'created_at',
     ]
     list_filter = [
-        'is_ativa',
         'data_inicio',
         'data_fim',
         'created_at',
@@ -237,7 +235,7 @@ class AlocacaoAdmin(admin.ModelAdmin):
     ]
     readonly_fields = [
         'id',
-        'is_ativa',
+        'observacoes',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -250,7 +248,7 @@ class AlocacaoAdmin(admin.ModelAdmin):
             'fields': ('funcionario', 'projeto')
         }),
         ('Período', {
-            'fields': ('data_inicio', 'data_fim', 'is_ativa')
+            'fields': ('data_inicio', 'data_fim')
         }),
         ('Observações', {
             'fields': ('observacoes',),
@@ -424,11 +422,9 @@ class EquipeFuncionarioAdmin(admin.ModelAdmin):
         'funcionario',
         'data_entrada',
         'data_saida',
-        'is_ativo',
         'created_at',
     ]
     list_filter = [
-        'is_ativo',
         'data_entrada',
         'data_saida',
         'created_at',
@@ -440,7 +436,6 @@ class EquipeFuncionarioAdmin(admin.ModelAdmin):
     ]
     readonly_fields = [
         'id',
-        'is_ativo',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -453,7 +448,7 @@ class EquipeFuncionarioAdmin(admin.ModelAdmin):
             'fields': ('equipe', 'funcionario')
         }),
         ('Período', {
-            'fields': ('data_entrada', 'data_saida', 'is_ativo')
+            'fields': ('data_entrada', 'data_saida')
         }),
         ('Auditoria', {
             'fields': ('id', 'created_at', 'updated_at', 'deleted_at'),
