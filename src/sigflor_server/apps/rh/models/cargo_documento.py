@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models import Q
 
 from apps.comum.models.base import SoftDeleteModel
-from apps.comum.models.documentos import Documento
+from apps.comum.models.enums import TipoDocumento
 
 
 class CargoDocumento(SoftDeleteModel):
@@ -24,7 +24,7 @@ class CargoDocumento(SoftDeleteModel):
     )
     documento_tipo = models.CharField(
         max_length=50,
-        choices=Documento.Tipo.choices,
+        choices=TipoDocumento.choices,
         help_text='Tipo de documento exigido'
     )
     obrigatorio = models.BooleanField(

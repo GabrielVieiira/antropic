@@ -27,7 +27,7 @@ class DeficienciaSerializer(serializers.ModelSerializer):
             'tipo_display',
             'cid',
             'grau',
-            'data_diagnostico',
+            # 'data_diagnostico',
             'congenita',
             'observacoes',
             'created_at',
@@ -47,7 +47,7 @@ class DeficienciaCreateSerializer(serializers.ModelSerializer):
             'tipo',
             'cid',
             'grau',
-            'data_diagnostico',
+            # 'data_diagnostico',
             'congenita',
             'observacoes',
         ]
@@ -77,3 +77,12 @@ class DeficienciaListSerializer(serializers.ModelSerializer):
             'cid',
             'congenita',
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Se o campo 'data_diagnostico' existir no modelo, ajuste aqui
+        if 'data_diagnostico' in [f.name for f in Deficiencia._meta.get_fields()]:
+            if 'data_diagnostico' not in self.fields:
+                self.fields['data_diagnostico'] = serializers.DateField(required=False, allow_null=True)
+            if 'data_diagnostico' not in self.Meta.fields:
+                self.Meta.fields.append('data_diagnostico')

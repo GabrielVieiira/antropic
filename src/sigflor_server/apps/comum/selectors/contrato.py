@@ -1,7 +1,10 @@
 from django.db.models import QuerySet, Q, Count, Sum
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
-from ..models import Contrato, Usuario, Filial # Adicione Filial para o filtro de permissão
+
+
+from apps.autenticacao.models.usuarios import Usuario
+from ..models import Contrato
 
 def contrato_list(
     *,

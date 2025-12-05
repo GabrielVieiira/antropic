@@ -1,4 +1,3 @@
-from typing import Optional
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
@@ -7,37 +6,32 @@ from .pessoa_juridica import PessoaJuridicaService
 
 
 class ClienteService:
-    """Service layer para operações com Cliente."""
 
     @staticmethod
     @transaction.atomic
     def create(
-        pessoa_juridica_data: dict,
-        descricao: Optional[str] = None,
-        ativo: bool = True,
-        created_by=None,
-        empresa_gestora=None,
+        user,
+        validated_data: dict,
     ) -> Cliente:
-        """Cria um novo Cliente."""
         
+        pessoa_juridica_data = validated_data.pop('pessoa_juridica')
         cnpj = pessoa_juridica_data.pop('cnpj')
 
         pessoa_juridica, _ = PessoaJuridicaService.get_or_create_by_cnpj(
             cnpj=cnpj,
-            created_by=created_by,
+            created_by=user,
             **pessoa_juridica_data
         )
 
-        # Validação de unicidade (Um cliente por PJ)
         if hasattr(pessoa_juridica, 'cliente') and pessoa_juridica.cliente:
             raise ValidationError("Esta Pessoa Jurídica já está cadastrada como Cliente.")
 
         cliente = Cliente(
             pessoa_juridica=pessoa_juridica,
-            descricao=descricao,
-            ativo=ativo,
-            empresa_gestora=empresa_gestora,
-            created_by=created_by,
+            descricao=validated_data.get('descricao'),
+            ativo=validated_data.get('ativo'),
+            empresa_gestora=validated_data.get('empresa_gestora'),
+            created_by=user,
         )
         cliente.save()
         return cliente

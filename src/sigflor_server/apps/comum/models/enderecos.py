@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from .base import SoftDeleteModel
 from ..validators import EnderecoValidator
+from .enums import UF, TipoEndereco
 
 
 class Endereco(SoftDeleteModel):
@@ -12,35 +13,6 @@ class Endereco(SoftDeleteModel):
     Endereços são vinculados a outras entidades através de tabelas de junção
     (ex: PessoaFisicaEndereco, PessoaJuridicaEndereco, FilialEndereco).
     """
-
-    class UF(models.TextChoices):
-        AC = 'AC', 'Acre'
-        AL = 'AL', 'Alagoas'
-        AP = 'AP', 'Amapá'
-        AM = 'AM', 'Amazonas'
-        BA = 'BA', 'Bahia'
-        CE = 'CE', 'Ceará'
-        DF = 'DF', 'Distrito Federal'
-        ES = 'ES', 'Espírito Santo'
-        GO = 'GO', 'Goiás'
-        MA = 'MA', 'Maranhão'
-        MT = 'MT', 'Mato Grosso'
-        MS = 'MS', 'Mato Grosso do Sul'
-        MG = 'MG', 'Minas Gerais'
-        PA = 'PA', 'Pará'
-        PB = 'PB', 'Paraíba'
-        PR = 'PR', 'Paraná'
-        PE = 'PE', 'Pernambuco'
-        PI = 'PI', 'Piauí'
-        RJ = 'RJ', 'Rio de Janeiro'
-        RN = 'RN', 'Rio Grande do Norte'
-        RS = 'RS', 'Rio Grande do Sul'
-        RO = 'RO', 'Rondônia'
-        RR = 'RR', 'Roraima'
-        SC = 'SC', 'Santa Catarina'
-        SP = 'SP', 'São Paulo'
-        SE = 'SE', 'Sergipe'
-        TO = 'TO', 'Tocantins'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     logradouro = models.CharField(max_length=255)
@@ -94,12 +66,6 @@ class Endereco(SoftDeleteModel):
         return ', '.join(partes)
 
 
-class TipoEndereco(models.TextChoices):
-    """Tipos de endereço para uso nas tabelas de vínculo."""
-    RESIDENCIAL = 'RESIDENCIAL', 'Residencial'
-    COMERCIAL = 'COMERCIAL', 'Comercial'
-    CORRESPONDENCIA = 'CORRESPONDENCIA', 'Correspondência'
-    OUTRO = 'OUTRO', 'Outro'
 
 
 class PessoaFisicaEndereco(SoftDeleteModel):

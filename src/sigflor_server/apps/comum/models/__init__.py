@@ -1,8 +1,6 @@
 from .base import TimeStampedModel, AuditModel, SoftDeleteModel
 from .pessoa_fisica import PessoaFisica
 from .pessoa_juridica import PessoaJuridica, SituacaoCadastral
-from .usuarios import Usuario, UsuarioManager
-from .permissoes import Permissao, Papel
 from .empresas import Empresa
 from .clientes import Cliente
 from .filiais import Filial
@@ -27,11 +25,6 @@ __all__ = [
     'PessoaFisica',
     'PessoaJuridica',
     'SituacaoCadastral',
-    # Usuarios e RBAC
-    'Usuario',
-    'UsuarioManager',
-    'Permissao',
-    'Papel',
     # Empresas e Estrutura
     'Empresa',
     'Cliente',

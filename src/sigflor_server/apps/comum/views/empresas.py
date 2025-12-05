@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from ..models import Empresa
 from ..serializers import (
@@ -33,6 +34,19 @@ class EmpresaViewSet(viewsets.ModelViewSet):
             ativa = ativa.lower() == 'true'
 
         return selectors.empresa_list(search=search, ativa=ativa)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            empresa = EmpresaService.create(
+                validated_data=serializer.validated_data,
+                user=request.user
+            )
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
+        output_serializer = EmpresaSerializer(empresa)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk=None):
         try:

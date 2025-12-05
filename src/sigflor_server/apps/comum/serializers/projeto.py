@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from ..models import Projeto, StatusProjeto, Cliente, Filial, Contrato
+from ..models import Projeto, Cliente, Filial, Contrato
+from ..models.enums import StatusProjeto
 
 
 class ProjetoListSerializer(serializers.ModelSerializer):
@@ -28,7 +29,6 @@ class ProjetoListSerializer(serializers.ModelSerializer):
             'data_inicio',
             'data_fim',
         ]
-
 
 class ProjetoSerializer(serializers.ModelSerializer):
     """Serializer completo para leitura de Projeto."""
@@ -67,7 +67,6 @@ class ProjetoSerializer(serializers.ModelSerializer):
             'filial_nome', 'contrato_numero', 'status_display', 'is_ativo',
             'created_at', 'updated_at'
         ]
-
 
 class ProjetoCreateSerializer(serializers.Serializer):
     """Serializer para criação de Projeto."""
@@ -112,7 +111,6 @@ class ProjetoCreateSerializer(serializers.Serializer):
             })
 
         return data
-
 
 class ProjetoUpdateSerializer(serializers.Serializer):
     """Serializer para atualização de Projeto."""

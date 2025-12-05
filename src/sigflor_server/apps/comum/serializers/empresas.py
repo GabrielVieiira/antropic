@@ -23,7 +23,6 @@ class EmpresaListSerializer(serializers.ModelSerializer):
             'ativa',
         ]
 
-
 class EmpresaSerializer(serializers.ModelSerializer):
     pessoa_juridica = PessoaJuridicaSerializer(read_only=True)
 
@@ -39,7 +38,6 @@ class EmpresaSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'razao_social', 'cnpj', 'created_at', 'updated_at']
 
-
 class EmpresaCreateSerializer(serializers.ModelSerializer):
     pessoa_juridica = PessoaJuridicaCreateSerializer(required=True)
 
@@ -52,27 +50,3 @@ class EmpresaCreateSerializer(serializers.ModelSerializer):
             'ativa',
         ]
         read_only_fields = ['id']
-
-    def create(self, validated_data):
-        from ..services import EmpresaService
-        pessoa_juridica_data = validated_data.pop('pessoa_juridica')
-        try:
-            return EmpresaService.create(
-                pessoa_juridica_data=pessoa_juridica_data,
-                created_by=self.context.get('request').user if self.context.get('request') else None,
-                **validated_data
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
-
-    def update(self, instance, validated_data):
-
-        from ..services import EmpresaService
-        try:
-            return EmpresaService.update(
-                empresa=instance,
-                updated_by=self.context.get('request').user if self.context.get('request') else None,
-                **validated_data
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))

@@ -1,17 +1,15 @@
 from typing import Optional, List , Dict, Any
 from django.db import transaction
-from django.core.exceptions import ValidationError
 
 from ..models import PessoaJuridica, SituacaoCadastral
 from .enderecos import EnderecoService
 from .contatos import ContatoService
 from .documentos import DocumentoService
 from .anexos import AnexoService
+from apps.autenticacao.models.usuarios import Usuario
 
 
 class PessoaJuridicaService:
-    """Service layer para operações com Pessoa Jurídica."""
-
     @staticmethod
     @transaction.atomic
     def create(
@@ -23,15 +21,13 @@ class PessoaJuridicaService:
         data_abertura=None,
         situacao_cadastral: str = SituacaoCadastral.ATIVA,
         observacoes: Optional[str] = None,
-        created_by=None,
+        created_by:Usuario=None,
         enderecos: List[Dict[str, Any]] = None,
         contatos: List[Dict[str, Any]] = None,
         documentos: List[Dict[str, Any]] = None,
         anexos: List[Dict[str, Any]] = None,
     ) -> PessoaJuridica:
-        """Cria uma nova Pessoa Jurídica e suas entidades relacionadas."""
         
-        # 1. Cria a entidade principal
         pessoa = PessoaJuridica(
             razao_social=razao_social,
             cnpj=cnpj,
@@ -44,7 +40,6 @@ class PessoaJuridicaService:
         )
         pessoa.save()
 
-        # 2. Processa Endereços
         if enderecos:
             for end_data in enderecos:
                 EnderecoService.criar_endereco_pessoa_juridica(
@@ -53,7 +48,6 @@ class PessoaJuridicaService:
                     **end_data
                 )
 
-        # 3. Processa Contatos
         if contatos:
             for ctt_data in contatos:
                 ContatoService.criar_contato_para_pessoa_juridica(
@@ -62,7 +56,6 @@ class PessoaJuridicaService:
                     **ctt_data
                 )
 
-        # 4. Processa Documentos
         if documentos:
             for doc_data in documentos:
                 doc_data.pop('id', None)
@@ -72,7 +65,6 @@ class PessoaJuridicaService:
                     **doc_data
                 )
 
-        # 5. Processa Anexos (GFK)
         if anexos:
             for anx_data in anexos:
                 anx_data.pop('id', None)
@@ -270,15 +262,12 @@ class PessoaJuridicaService:
 
     @staticmethod
     def get_or_create_by_cnpj(
+        *,
         cnpj: str,
-        created_by=None,
+        created_by:Usuario=None,
         **defaults
     ) -> tuple[PessoaJuridica, bool]:
-        """
-        Busca ou cria Pessoa Jurídica por CNPJ.
-        Retorna tuple (pessoa, created).
-        Lança ValidationError se CNPJ já existir.
-        """
+
         cnpj_limpo = ''.join(filter(str.isdigit, cnpj))
         pessoa = PessoaJuridicaService.get_by_cnpj(cnpj_limpo)
         if pessoa:

@@ -3,8 +3,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
 
-from .filiais import Filial
-
 class UsuarioManager(BaseUserManager):
     """Manager customizado para criação de usuários."""
 
@@ -57,20 +55,20 @@ class Usuario(AbstractUser):
 
     # Relacionamento com papéis RBAC
     papeis = models.ManyToManyField(
-        'comum.Papel',
+        'autenticacao.Papel',
         blank=True,
         related_name='usuarios'
     )
     # Permissões diretas (além das herdadas dos papéis)
     permissoes_diretas = models.ManyToManyField(
-        'comum.Permissao',
+        'autenticacao.Permissao',
         blank=True,
         related_name='usuarios_diretos'
     )
     
     # Filiais às quais o usuário tem acesso (controle de acesso regional)
     allowed_filiais = models.ManyToManyField(
-        Filial,
+        'comum.Filial',
         blank=True,
         related_name='usuarios_com_acesso',
         help_text='Filiais às quais o usuário tem permissão para acessar e gerenciar.'

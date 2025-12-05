@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from .base import SoftDeleteModel
 from ..validators import ContatosValidator
+from .enums import TipoContato
 
 
 class Contato(SoftDeleteModel):
@@ -12,14 +13,8 @@ class Contato(SoftDeleteModel):
     Não possui vínculo direto, sendo ligada a outras entidades por tabelas de junção.
     """
 
-    class Tipo(models.TextChoices):
-        CELULAR = 'telefone_celular', 'Telefone Celular'
-        FIXO = 'telefone_fixo', 'Telefone Fixo'
-        EMAIL = 'email', 'E-mail'
-        OUTRO = 'outro', 'Outro'
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tipo = models.CharField(max_length=20, choices=Tipo.choices)
+    tipo = models.CharField(max_length=20, choices=TipoContato.choices)
     valor = models.CharField(max_length=150)
     tem_whatsapp = models.BooleanField(default=False)
 
@@ -45,11 +40,11 @@ class Contato(SoftDeleteModel):
 
     def clean(self):
         super().clean()
-        if self.tipo == self.Tipo.EMAIL:
+        if self.tipo == TipoContato.EMAIL:
             self.valor = ContatosValidator.normalizar_email(self.valor)
-        elif self.tipo == self.Tipo.FIXO:
+        elif self.tipo == TipoContato.FIXO:
             self.valor = ContatosValidator.normalizar_telefone_fixo(self.valor)
-        elif self.tipo == self.Tipo.CELULAR:
+        elif self.tipo == TipoContato.CELULAR:
             self.valor = ContatosValidator.normalizar_telefone_celular(self.valor)
         else:
             self.valor = (self.valor or '').strip()
@@ -57,17 +52,17 @@ class Contato(SoftDeleteModel):
     def __str__(self) -> str:
         valor_exibicao = (
             self.valor_formatado
-            if self.tipo in (self.Tipo.CELULAR, self.Tipo.FIXO)
+            if self.tipo in (TipoContato.CELULAR, TipoContato.FIXO)
             else self.valor
         )
         return f"{self.get_tipo_display()}: {valor_exibicao}"
 
     @property
     def valor_formatado(self) -> str:
-        if self.tipo == self.Tipo.CELULAR and self.valor.isdigit():
+        if self.tipo == TipoContato.CELULAR and self.valor.isdigit():
             if len(self.valor) == 11:
                 return f"({self.valor[:2]}) {self.valor[2:7]}-{self.valor[7:]}"
-        if self.tipo == self.Tipo.FIXO and self.valor.isdigit():
+        if self.tipo == TipoContato.FIXO and self.valor.isdigit():
             if len(self.valor) == 10:
                 return f"({self.valor[:2]}) {self.valor[2:6]}-{self.valor[6:]}"
         return self.valor

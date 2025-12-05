@@ -1,6 +1,8 @@
 from django.db.models import QuerySet, Q
 from rest_framework.exceptions import PermissionDenied
-from ..models import Projeto, Usuario
+
+from apps.autenticacao.models.usuarios import Usuario
+from ..models import Projeto
 
 def projeto_list(
     *,

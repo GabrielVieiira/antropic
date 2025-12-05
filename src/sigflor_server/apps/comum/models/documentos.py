@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q
 
 from .base import SoftDeleteModel
+from .enums import TipoDocumento
 
 
 def documento_upload_path(instance, filename):
@@ -19,37 +20,8 @@ class Documento(SoftDeleteModel):
     (ex: PessoaFisicaDocumento, PessoaJuridicaDocumento).
     """
 
-    class Tipo(models.TextChoices):
-        RG = 'RG', 'RG'
-        CNH = 'CNH', 'Carteira Nacional de Habilitação'
-        CPF = 'CPF', 'Cadastro de Pessoas Físicas'
-        TITULO_ELEITOR = 'TITULO_ELEITOR', 'Título de Eleitor'
-        CERTIDAO_NASCIMENTO_CASAMENTO = 'CERTIDAO_NASCIMENTO_CASAMENTO', 'Certidão de Nascimento/Casamento'
-        COMPROVANTE_ENDERECO = 'COMPROVANTE_ENDERECO', 'Comprovante de Endereço'
-        CARTAO_SUS = 'CARTAO_SUS', 'Cartão do SUS'
-        CARTEIRA_VACINA = 'CARTEIRA_VACINA', 'Carteira de Vacinação (Geral)'
-        COMPROVANTE_PIS_NIS = 'COMPROVANTE_PIS_NIS', 'Comprovante PIS/NIS'
-        CTPS = 'CTPS', 'Carteira de Trabalho Digital'
-        CERTIDAO_NASCIMENTO_DEPENDENTE = 'CERTIDAO_NASCIMENTO_DEPENDENTE', 'Certidão de Nascimento de Dependente'
-        CARTEIRA_VACINA_DEPENDENTE = 'CARTEIRA_VACINA_DEPENDENTE', 'Carteira de Vacinação de Dependente'
-        DECLARACAO_ESCOLAR_DEPENDENTE = 'DECLARACAO_ESCOLAR_DEPENDENTE', 'Declaração de Matrícula Escolar de Dependente'
-        CARTAO_CONTA_BANCO = 'CARTAO_CONTA_BANCO', 'Cartão/Comprovante de Conta Bancária'
-        FOTO_3X4 = 'FOTO_3X4', 'Foto 3x4'
-        NADA_CONSTA_DETRAN = 'NADA_CONSTA_DETRAN', 'Nada Consta DETRAN'
-        CURSO_MOOP = 'CURSO_MOOP', 'Certificado Curso MOOP'
-        CURSO_PASSAGEIROS = 'CURSO_PASSAGEIROS', 'Certificado Curso Transporte de Passageiros'
-        CURSO_MAQUINAS_AGRICOLAS = 'CURSO_MAQUINAS_AGRICOLAS', 'Certificado Curso Operação de Máquinas Agrícolas'
-        ASO = 'ASO', 'Atestado de Saúde Ocupacional (Documento PDF)'
-        CONTRATO_SOCIAL = 'CONTRATO_SOCIAL', 'Contrato Social'
-        NOTA_FISCAL = 'NOTA_FISCAL', 'Nota Fiscal'
-        CONTRATO = 'CONTRATO', 'Contrato'
-        ADITIVO = 'ADITIVO', 'Aditivo Contratual'
-        CRLV = 'CRLV', 'CRLV'
-        LAUDO = 'LAUDO', 'Laudo'
-        OUTROS = 'OUTROS', 'Outros Documentos'
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tipo = models.CharField(max_length=50, choices=Tipo.choices)
+    tipo = models.CharField(max_length=50, choices=TipoDocumento.choices)
     descricao = models.TextField(blank=True, null=True)
     arquivo = models.FileField(upload_to=documento_upload_path)
 

@@ -1,10 +1,12 @@
 from django.db.models import QuerySet, Q, Count
 from rest_framework.exceptions import PermissionDenied
-from ..models import Filial, Usuario
+
+from apps.autenticacao.models.usuarios import Usuario
+from ..models import Filial
 
 def filial_list(
     *,
-    user: Usuario, # Adicionado parametro user
+    user: Usuario,
     filters: dict = None,
     search: str = None,
     status: str = None,
@@ -13,8 +15,8 @@ def filial_list(
     """Lista filiais com filtros opcionais, respeitando permissoes regionais do usuario."""
     qs = Filial.objects.filter(deleted_at__isnull=True)
 
-    if not user.is_superuser:
-        qs = qs.filter(id__in=user.allowed_filiais.all()) # Filtra por filiais permitidas ao usuario
+    # if not user.is_superuser:
+    #     qs = qs.filter(id__in=user.allowed_filiais.all()) # Filtra por filiais permitidas ao usuario
 
     qs = qs.select_related('empresa')
 

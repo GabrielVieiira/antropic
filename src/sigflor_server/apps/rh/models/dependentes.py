@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 
 from apps.comum.models.base import SoftDeleteModel
+from .enums import Parentesco
 
 
 class Dependente(SoftDeleteModel):
@@ -12,13 +13,6 @@ class Dependente(SoftDeleteModel):
     Representa uma pessoa física que possui vínculo de dependência com um Funcionário.
     Os dados civis do dependente são armazenados em PessoaFisica.
     """
-
-    class Parentesco(models.TextChoices):
-        FILHO = 'FILHO', 'Filho(a)'
-        CONJUGE = 'CONJUGE', 'Cônjuge'
-        IRMAO = 'IRMAO', 'Irmão(ã)'
-        PAIS = 'PAIS', 'Pais'
-        OUTROS = 'OUTROS', 'Outros'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

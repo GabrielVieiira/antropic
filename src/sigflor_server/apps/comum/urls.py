@@ -4,9 +4,6 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     EmpresaViewSet,
     ClienteViewSet,
-    UsuarioViewSet,
-    PermissaoViewSet,
-    PapelViewSet,
     EnderecoViewSet,
     ContatoViewSet,
     DocumentoViewSet,
@@ -23,11 +20,6 @@ router = DefaultRouter()
 # Cadastros principais
 router.register(r'empresas', EmpresaViewSet, basename='empresa')
 router.register(r'clientes', ClienteViewSet, basename='cliente')
-
-# Usuários e permissões
-router.register(r'usuarios', UsuarioViewSet, basename='usuario')
-router.register(r'permissoes', PermissaoViewSet, basename='permissao')
-router.register(r'papeis', PapelViewSet, basename='papel')
 
 # Estrutura organizacional
 router.register(r'filiais', FilialViewSet, basename='filial')

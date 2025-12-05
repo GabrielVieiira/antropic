@@ -4,7 +4,8 @@ from django.db import transaction
 from django.db.models import QuerySet
 from rest_framework.exceptions import PermissionDenied
 
-from ..models import Projeto, StatusProjeto, Cliente, Filial, Contrato, Usuario
+from apps.autenticacao.models.usuarios import Usuario
+from ..models import Projeto, StatusProjeto, Cliente, Filial, Contrato
 
 
 class ProjetoService:

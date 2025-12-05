@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from .base import SoftDeleteModel
+from .enums import StatusFilial
 
 
 class Filial(SoftDeleteModel):
@@ -10,11 +11,6 @@ class Filial(SoftDeleteModel):
     Cadastro de filiais da empresa.
     Representa unidades operacionais vinculadas a uma empresa do grupo.
     """
-
-    class Status(models.TextChoices):
-        ATIVA = 'ativa', 'Ativa'
-        INATIVA = 'inativa', 'Inativa'
-        SUSPENSA = 'suspensa', 'Suspensa'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -29,8 +25,8 @@ class Filial(SoftDeleteModel):
     )
     status = models.CharField(
         max_length=20,
-        choices=Status.choices,
-        default=Status.ATIVA,
+        choices=StatusFilial.choices,
+        default=StatusFilial.ATIVA,
         help_text='Status da filial'
     )
     descricao = models.TextField(
@@ -84,7 +80,7 @@ class Filial(SoftDeleteModel):
     @property
     def is_ativa(self):
         """Verifica se a filial esta ativa."""
-        return self.status == self.Status.ATIVA and self.deleted_at is None
+        return self.status == StatusFilial.ATIVA and self.deleted_at is None
 
     @property
     def empresa_nome(self):

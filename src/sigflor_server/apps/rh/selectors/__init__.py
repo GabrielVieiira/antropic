@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
 from ..models import Cargo, CargoDocumento, Funcionario, Dependente, Equipe, EquipeFuncionario, Alocacao
-from apps.comum.models.usuarios import Usuario
+from apps.autenticacao.models.usuarios import Usuario
 
 
 # ============================================================================

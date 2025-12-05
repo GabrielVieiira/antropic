@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from ..models import Documento, PessoaFisicaDocumento, PessoaJuridicaDocumento
+from ..models.enums import TipoDocumento
 
 
 class DocumentoSerializer(serializers.ModelSerializer):
@@ -35,7 +36,7 @@ class DocumentoSerializer(serializers.ModelSerializer):
 class DocumentoCreateSerializer(serializers.Serializer):
     """Serializer para criação de Documento com upload de arquivo."""
 
-    tipo = serializers.ChoiceField(choices=Documento.Tipo.choices)
+    tipo = serializers.ChoiceField(choices=TipoDocumento.choices)
     descricao = serializers.CharField(required=False, allow_blank=True)
     arquivo = serializers.FileField()
     data_emissao = serializers.DateField(required=False, allow_null=True)
@@ -80,7 +81,7 @@ class PessoaFisicaDocumentoListSerializer(serializers.ModelSerializer):
 class PessoaFisicaDocumentoNestedSerializer(PessoaFisicaDocumentoSerializer):
     id = serializers.UUIDField(required=False)
     # Campos do documento
-    tipo = serializers.ChoiceField(choices=Documento.Tipo.choices, required=False)
+    tipo = serializers.ChoiceField(choices=TipoDocumento.choices, required=False)
     descricao = serializers.CharField(required=False)
 
     class Meta(PessoaFisicaDocumentoSerializer.Meta):
@@ -124,7 +125,7 @@ class PessoaJuridicaDocumentoListSerializer(serializers.ModelSerializer):
 
 class PessoaJuridicaDocumentoNestedSerializer(PessoaJuridicaDocumentoSerializer):
     id = serializers.UUIDField(required=False)
-    tipo = serializers.ChoiceField(choices=Documento.Tipo.choices, required=False)
+    tipo = serializers.ChoiceField(choices=TipoDocumento.choices, required=False)
     descricao = serializers.CharField(required=False)
 
     class Meta(PessoaJuridicaDocumentoSerializer.Meta):

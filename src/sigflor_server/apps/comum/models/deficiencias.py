@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from .base import SoftDeleteModel
+from .enums import TipoDeficiencia
 
 
 class Deficiencia(SoftDeleteModel):
@@ -10,15 +11,6 @@ class Deficiencia(SoftDeleteModel):
     Cadastro de deficiencias vinculadas a pessoas fisicas.
     Uma pessoa pode ter multiplas deficiencias cadastradas.
     """
-
-    class TipoDeficiencia(models.TextChoices):
-        FISICA = 'fisica', 'Fisica'
-        AUDITIVA = 'auditiva', 'Auditiva'
-        VISUAL = 'visual', 'Visual'
-        MENTAL = 'mental', 'Mental/Intelectual'
-        MULTIPLA = 'multipla', 'Multipla'
-        REABILITADO = 'reabilitado', 'Reabilitado'
-        OUTRA = 'outra', 'Outra'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

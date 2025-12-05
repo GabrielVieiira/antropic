@@ -3,7 +3,9 @@ import uuid
 from django.db import models
 from django.utils import timezone
 
-from apps.comum.models import SoftDeleteModel, Endereco, PessoaFisica
+from apps.comum.models.base import SoftDeleteModel
+from apps.comum.models.enums import UF
+from .enums import TipoContrato, StatusFuncionario, Turno, TipoConta
 
 
 class Funcionario(SoftDeleteModel):
@@ -11,29 +13,6 @@ class Funcionario(SoftDeleteModel):
     Cadastro de funcionários da empresa.
     Representa o vínculo empregatício de uma PessoaFisica com uma Empresa.
     """
-
-    class TipoContrato(models.TextChoices):
-        CLT = 'CLT', 'CLT'
-        PJ = 'PJ', 'Pessoa Jurídica'
-        ESTAGIARIO = 'ESTAGIARIO', 'Estagiário'
-        TEMPORARIO = 'TEMPORARIO', 'Temporário'
-        APRENDIZ = 'APRENDIZ', 'Jovem Aprendiz'
-
-    class Status(models.TextChoices):
-        ATIVO = 'ATIVO', 'Ativo'
-        AFASTADO = 'AFASTADO', 'Afastado'
-        FERIAS = 'FERIAS', 'Em Férias'
-        DEMITIDO = 'DEMITIDO', 'Demitido'
-
-    class Turno(models.TextChoices):
-        DIURNO = 'DIURNO', 'Diurno'
-        NOTURNO = 'NOTURNO', 'Noturno'
-        INTEGRAL = 'INTEGRAL', 'Integral'
-        FLEXIVEL = 'FLEXIVEL', 'Flexível'
-
-    class TipoConta(models.TextChoices):
-        CORRENTE = 'CORRENTE', 'Conta Corrente'
-        POUPANCA = 'POUPANCA', 'Conta Poupança'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -78,8 +57,8 @@ class Funcionario(SoftDeleteModel):
     
     status = models.CharField(
         max_length=30,
-        choices=Status.choices,
-        default=Status.ATIVO
+        choices=StatusFuncionario.choices,
+        default=StatusFuncionario.ATIVO
     )
     
     tipo_contrato = models.CharField(
@@ -171,7 +150,7 @@ class Funcionario(SoftDeleteModel):
     )
     ctps_uf = models.CharField(
         max_length=2,
-        choices=Endereco.UF.choices,
+        choices=UF.choices,
         blank=True,
         null=True,
         help_text='UF de emissão da CTPS'
@@ -287,7 +266,7 @@ class Funcionario(SoftDeleteModel):
     @property
     def is_ativo(self):
         """Verifica se o funcionário está ativo."""
-        return self.status == self.Status.ATIVO and self.deleted_at is None
+        return self.status == StatusFuncionario.ATIVO and self.deleted_at is None
 
     @property
     def cargo_nome(self):

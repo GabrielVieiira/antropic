@@ -4,14 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from .base import SoftDeleteModel
-
-
-class StatusProjeto(models.TextChoices):
-    """Status do projeto."""
-    PLANEJADO = 'PLANEJADO', 'Planejado'
-    EM_EXECUCAO = 'EM_EXECUCAO', 'Em Execução'
-    CONCLUIDO = 'CONCLUIDO', 'Concluído'
-    CANCELADO = 'CANCELADO', 'Cancelado'
+from .enums import StatusProjeto
 
 
 class Projeto(SoftDeleteModel):

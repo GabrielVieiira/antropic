@@ -2,19 +2,25 @@
 from rest_framework import serializers
 
 from ..models import Filial
+from ..serializers.enderecos import FilialEnderecoNestedSerializer, FilialEnderecoListSerializer
+from ..serializers.contatos import FilialContatoNestedSerializer, FilialContatoListSerializer
+from ..models.enums import StatusFilial
 
 
 class FilialSerializer(serializers.ModelSerializer):
-    """Serializer completo para Filial."""
 
     is_ativa = serializers.ReadOnlyField()
     empresa_nome = serializers.ReadOnlyField()
+    enderecos = FilialEnderecoListSerializer(many=True, read_only=True, source='enderecos_vinculados')
+    contatos = FilialContatoListSerializer(many=True, read_only=True, source='contatos_vinculados')
 
     class Meta:
         model = Filial
         fields = [
             'id',
             'nome',
+            'enderecos',
+            'contatos',
             'codigo_interno',
             'status',
             'descricao',
@@ -26,9 +32,10 @@ class FilialSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'is_ativa', 'created_at', 'updated_at']
 
-
 class FilialCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criacao/edicao de Filial."""
+    
+    enderecos = FilialEnderecoNestedSerializer(many=True, required=True, allow_empty=False)
+    contatos = FilialContatoNestedSerializer(many=True, required=True, allow_empty=False)
 
     class Meta:
         model = Filial
@@ -38,11 +45,14 @@ class FilialCreateSerializer(serializers.ModelSerializer):
             'status',
             'descricao',
             'empresa',
+            'contatos',
+            'enderecos',
         ]
-
+        extra_kwargs = {
+            'status': {'choices': StatusFilial.choices}
+        }
 
 class FilialListSerializer(serializers.ModelSerializer):
-    """Serializer simplificado para listagem de Filiais."""
 
     empresa_nome = serializers.ReadOnlyField()
 

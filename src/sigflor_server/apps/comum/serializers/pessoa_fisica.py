@@ -2,11 +2,8 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
 from apps.comum.validators import validar_cpf
 
-from ..models import (
-    PessoaFisica, Endereco, Contato, Documento, Anexo,
-    PessoaFisicaEndereco, PessoaFisicaContato, PessoaFisicaDocumento
-)
-
+from ..models import PessoaFisica, PessoaFisicaEndereco, PessoaFisicaContato, PessoaFisicaDocumento
+from ..models.enums import Sexo, EstadoCivil
 from .enderecos import PessoaFisicaEnderecoNestedSerializer, PessoaFisicaEnderecoListSerializer
 from .contatos import PessoaFisicaContatoNestedSerializer, PessoaFisicaContatoListSerializer
 from .documentos import PessoaFisicaDocumentoNestedSerializer, PessoaFisicaDocumentoListSerializer
@@ -43,7 +40,7 @@ class PessoaFisicaCreateSerializer(serializers.ModelSerializer):
         many=True, required=False, allow_empty=True, source='documentos_vinculados'
     )
     anexos = AnexoNestedSerializer(
-        many=True, required=False, allow_empty=True, source='anexos_vinculados' # Se houver source
+        many=True, required=False, allow_empty=True, source='anexos_vinculados'
     )
 
     class Meta:
@@ -80,6 +77,7 @@ class PessoaFisicaCreateSerializer(serializers.ModelSerializer):
         pessoa_fisica = PessoaFisica.objects.create(**validated_data)
 
         # Criar endereços vinculados
+        from ..models import Endereco # Importação local para evitar circular
         for endereco_data in enderecos_data:
             endereco_id = endereco_data.pop('endereco_id', None)
             if endereco_id:
@@ -100,6 +98,7 @@ class PessoaFisicaCreateSerializer(serializers.ModelSerializer):
             PessoaFisicaEndereco.objects.create(pessoa_fisica=pessoa_fisica, endereco=endereco, **endereco_data)
 
         # Criar contatos vinculados
+        from ..models import Contato # Importação local
         for contato_data in contatos_data:
             contato_id = contato_data.pop('contato_id', None)
             if contato_id:
@@ -115,6 +114,7 @@ class PessoaFisicaCreateSerializer(serializers.ModelSerializer):
             PessoaFisicaContato.objects.create(pessoa_fisica=pessoa_fisica, contato=contato, **contato_data)
 
         # Criar documentos vinculados
+        from ..models import Documento # Importação local
         for documento_data in documentos_data:
             documento_id = documento_data.pop('documento_id', None)
             if documento_id:
@@ -122,18 +122,17 @@ class PessoaFisicaCreateSerializer(serializers.ModelSerializer):
                 documento = Documento.objects.get(id=documento_id)
             else:
                 # Criação de um novo documento
-                # Supondo que 'arquivo' é tratado separadamente ou o DocumentoCreateSerializer cuida disso
                 documento = Documento.objects.create(
                     tipo=documento_data.pop('tipo'),
                     descricao=documento_data.pop('descricao', None),
                     data_emissao=documento_data.pop('data_emissao', None),
                     data_validade=documento_data.pop('data_validade', None),
-                    # 'arquivo', 'nome_original', 'mimetype', 'tamanho' seriam tratados aqui se fosse um upload direto
                 )
             PessoaFisicaDocumento.objects.create(pessoa_fisica=pessoa_fisica, documento=documento, **documento_data)
 
         # Para anexos, a lógica de GFK deve ser mantida, se houver.
         # Este é um exemplo simplificado, a implementação real pode exigir FileField ou ImageField.
+        from ..models import Anexo
         for anexo_data in anexos_data:
             Anexo.objects.create(object_id=pessoa_fisica.id, content_type_name='pessoafisica', **anexo_data)
 

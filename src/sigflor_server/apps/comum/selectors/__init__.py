@@ -7,8 +7,6 @@ Centralizam queries complexas e evitam N+1 usando select_related e prefetch_rela
 # Importar todos os selectors de seus respectivos módulos
 from .pessoa_fisica import *
 from .pessoa_juridica import *
-from .usuario import *
-from .permissao_papel import *
 from .empresa import *
 from .cliente import *
 from .endereco import * # Contém endereco_list_por_entidade

@@ -3,6 +3,8 @@ from rest_framework import serializers
 
 from apps.comum.serializers.pessoa_fisica import PessoaFisicaCreateSerializer, PessoaFisicaSerializer
 from ..models import Funcionario
+from ..models.enums import TipoContrato, StatusFuncionario, Turno, TipoConta
+from apps.comum.models.enums import UF
 
 
 class FuncionarioListSerializer(serializers.ModelSerializer):
@@ -165,6 +167,10 @@ class FuncionarioCreateSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'salario_nominal': {'required': False},
+            'tipo_contrato': {'choices': TipoContrato.choices},
+            'turno': {'choices': Turno.choices},
+            'ctps_uf': {'choices': UF.choices},
+            'tipo_conta': {'choices': TipoConta.choices},
         }
 
     def create(self, validated_data):
@@ -213,6 +219,13 @@ class FuncionarioUpdateSerializer(serializers.ModelSerializer):
             'tamanho_calca',
             'tamanho_calcado',
         ]
+        extra_kwargs = {
+            'tipo_contrato': {'choices': TipoContrato.choices, 'required': False},
+            'status': {'choices': StatusFuncionario.choices, 'required': False},
+            'turno': {'choices': Turno.choices, 'required': False},
+            'ctps_uf': {'choices': UF.choices, 'required': False},
+            'tipo_conta': {'choices': TipoConta.choices, 'required': False},
+        }
 
     def update(self, instance, validated_data):
         from apps.rh.services import FuncionarioService

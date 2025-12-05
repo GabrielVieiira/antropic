@@ -1,9 +1,7 @@
 from rest_framework import serializers
 
-from ..models import (
-    Endereco, TipoEndereco,
-    PessoaFisicaEndereco, PessoaJuridicaEndereco, FilialEndereco
-)
+from ..models import PessoaFisicaEndereco, PessoaJuridicaEndereco, FilialEndereco, Endereco
+from ..models.enums import UF, TipoEndereco
 
 
 class EnderecoSerializer(serializers.ModelSerializer):
@@ -46,7 +44,6 @@ class EnderecoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("O CEP deve conter 8 dígitos numéricos.")
         return limpo
 
-
 class EnderecoCreateSerializer(serializers.Serializer):
     """Serializer para criação de endereço com vínculo."""
 
@@ -55,7 +52,7 @@ class EnderecoCreateSerializer(serializers.Serializer):
     complemento = serializers.CharField(max_length=100, required=False, allow_blank=True)
     bairro = serializers.CharField(max_length=100, required=False, allow_blank=True)
     cidade = serializers.CharField(max_length=100)
-    estado = serializers.ChoiceField(choices=Endereco.UF.choices)
+    estado = serializers.ChoiceField(choices=UF.choices)
     cep = serializers.CharField(max_length=9)
     pais = serializers.CharField(max_length=50, default='Brasil')
     tipo = serializers.ChoiceField(choices=TipoEndereco.choices, default=TipoEndereco.RESIDENCIAL)
@@ -67,7 +64,6 @@ class EnderecoCreateSerializer(serializers.Serializer):
         if len(limpo) != 8:
             raise serializers.ValidationError("O CEP deve conter 8 dígitos numéricos.")
         return limpo
-
 
 class PessoaFisicaEnderecoSerializer(serializers.ModelSerializer):
     """Serializer para vínculo PessoaFisica-Endereco."""
@@ -88,7 +84,6 @@ class PessoaFisicaEnderecoSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'endereco', 'tipo_display', 'created_at', 'updated_at']
-
 
 class PessoaFisicaEnderecoListSerializer(serializers.ModelSerializer):
     """Serializer para listagem de endereços de PessoaFisica."""
@@ -125,7 +120,6 @@ class PessoaFisicaEnderecoNestedSerializer(PessoaFisicaEnderecoSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at'] # Remove 'id' e 'endereco' dos read_only
 
-
 class PessoaJuridicaEnderecoSerializer(serializers.ModelSerializer):
     """Serializer para vínculo PessoaJuridica-Endereco."""
 
@@ -145,7 +139,6 @@ class PessoaJuridicaEnderecoSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'endereco', 'tipo_display', 'created_at', 'updated_at']
-
 
 class PessoaJuridicaEnderecoListSerializer(serializers.ModelSerializer):
     """Serializer para listagem de endereços de PessoaJuridica."""
@@ -175,7 +168,6 @@ class PessoaJuridicaEnderecoNestedSerializer(PessoaJuridicaEnderecoSerializer):
     pais = serializers.CharField(required=False)
 
     class Meta(PessoaJuridicaEnderecoSerializer.Meta):
-        # Adicionamos os campos declarados explicitamente à lista de fields
         fields = [
             'id',
             'endereco',
@@ -184,12 +176,18 @@ class PessoaJuridicaEnderecoNestedSerializer(PessoaJuridicaEnderecoSerializer):
             'principal',
             'created_at',
             'updated_at',
-        ] + ['logradouro', 'cidade', 'estado', 'cep', 'bairro', 'numero', 'complemento', 'pais']
+            'logradouro',
+            'cidade',
+            'estado',
+            'cep',
+            'bairro',
+            'numero',
+            'complemento',
+            'pais',
+        ]
         read_only_fields = ['created_at', 'updated_at']
 
-
 class FilialEnderecoSerializer(serializers.ModelSerializer):
-    """Serializer para vínculo Filial-Endereco."""
 
     endereco = EnderecoSerializer(read_only=True)
     tipo_display = serializers.CharField(source='get_tipo_display', read_only=True)
@@ -197,7 +195,6 @@ class FilialEnderecoSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilialEndereco
         fields = [
-            'id',
             'filial',
             'endereco',
             'tipo',
@@ -206,8 +203,7 @@ class FilialEnderecoSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'endereco', 'tipo_display', 'created_at', 'updated_at']
-
+        read_only_fields = ['endereco', 'tipo_display', 'created_at', 'updated_at']
 
 class FilialEnderecoListSerializer(serializers.ModelSerializer):
     """Serializer para listagem de endereços de Filial."""
@@ -227,15 +223,30 @@ class FilialEnderecoListSerializer(serializers.ModelSerializer):
 
 class FilialEnderecoNestedSerializer(FilialEnderecoSerializer):
     id = serializers.UUIDField(required=False)
-    # Campos para validação se enviados flatten
     logradouro = serializers.CharField(required=False)
     cidade = serializers.CharField(required=False)
     estado = serializers.CharField(required=False)
     cep = serializers.CharField(required=False)
+    bairro = serializers.CharField(required=False)
+    numero = serializers.CharField(required=False)
+    complemento = serializers.CharField(required=False)
+    pais = serializers.CharField(required=False)
 
     class Meta(FilialEnderecoSerializer.Meta):
-        # Adicionamos os campos declarados explicitamente à lista de fields
-        fields = FilialEnderecoSerializer.Meta.fields + [
-            'logradouro', 'cidade', 'estado', 'cep'
+        fields = [
+            'endereco',
+            'tipo',
+            'tipo_display',
+            'principal',
+            'created_at',
+            'updated_at',
+            'logradouro',
+            'cidade',
+            'estado',
+            'cep',
+            'bairro',
+            'numero',
+            'complemento',
+            'pais',
         ]
         read_only_fields = ['created_at', 'updated_at']

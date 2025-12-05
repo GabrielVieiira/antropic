@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 
 from apps.comum.models.base import SoftDeleteModel
+from .enums import TipoEquipe
 
 
 class Equipe(SoftDeleteModel):
@@ -11,10 +12,6 @@ class Equipe(SoftDeleteModel):
     Representa uma equipe de trabalho, vinculada a um Projeto.
     Pode ter um líder e um coordenador.
     """
-
-    class TipoEquipe(models.TextChoices):
-        MANUAL = 'MANUAL', 'Manual'
-        MECANIZADA = 'MECANIZADA', 'Mecanizada'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

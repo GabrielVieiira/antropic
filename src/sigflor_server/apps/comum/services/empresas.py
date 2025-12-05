@@ -1,30 +1,25 @@
-from typing import Optional
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
 from ..models import Empresa
 from .pessoa_juridica import PessoaJuridicaService
-
+from apps.autenticacao.models.usuarios import Usuario
 
 class EmpresaService:
-    """Service layer para operações com Empresa."""
 
     @staticmethod
     @transaction.atomic
     def create(
-        pessoa_juridica_data: dict,
-        descricao: Optional[str] = None,
-        ativa: bool = True,
-        created_by=None,
+        *,
+        user:Usuario,
+        validated_data: dict,
     ) -> Empresa:
-        """Cria uma nova Empresa."""
-
-        # O get_or_create agora sabe lidar com os dados aninhados dentro de 'defaults'
-        # passamos todo o resto do dicionário como kwargs
+        pessoa_juridica_data = validated_data.pop('pessoa_juridica')
         cnpj = pessoa_juridica_data.pop('cnpj')
+        
         pessoa_juridica, _ = PessoaJuridicaService.get_or_create_by_cnpj(
             cnpj=cnpj,
-            created_by=created_by,
+            created_by=user,
             **pessoa_juridica_data 
         )
 
@@ -34,9 +29,9 @@ class EmpresaService:
 
         empresa = Empresa(
             pessoa_juridica=pessoa_juridica,
-            descricao=descricao,
-            ativa=ativa,
-            created_by=created_by,
+            descricao=validated_data.get('descricao'),
+            ativa=validated_data.get('ativa'),
+            created_by=user,
         )
         empresa.save()
         return empresa

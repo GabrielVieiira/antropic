@@ -24,12 +24,13 @@ INSTALLED_APPS = [
 
     'rest_framework',
 
+    'apps.autenticacao',
     'apps.comum',
     'apps.rh',
 ]
 
 # Custom User Model
-AUTH_USER_MODEL = 'comum.Usuario'
+AUTH_USER_MODEL = 'autenticacao.Usuario'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -130,7 +131,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny', 
     ],
-    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
+    # 'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 }
 
 SIMPLE_JWT = {

@@ -5,8 +5,6 @@ from .pessoa_juridica import (
     PessoaJuridicaUpdateSerializer,
     PessoaJuridicaListSerializer
 )
-from .usuarios import UsuarioSerializer, UsuarioCreateSerializer
-from .permissoes import PermissaoSerializer, PapelSerializer
 from .empresas import EmpresaListSerializer, EmpresaSerializer, EmpresaCreateSerializer
 from .clientes import ClienteListSerializer, ClienteSerializer, ClienteCreateSerializer
 from .enderecos import EnderecoSerializer
@@ -42,10 +40,6 @@ __all__ = [
     'PessoaJuridicaCreateSerializer',
     'PessoaJuridicaUpdateSerializer',
     'PessoaJuridicaListSerializer',
-    'UsuarioSerializer',
-    'UsuarioCreateSerializer',
-    'PermissaoSerializer',
-    'PapelSerializer',
     'EmpresaCreateSerializer',
     'EmpresaListSerializer',
     'EmpresaSerializer',

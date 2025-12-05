@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 from ..models import CargoDocumento
+from apps.comum.models.enums import TipoDocumento
 
 
 class CargoDocumentoListSerializer(serializers.ModelSerializer):
@@ -50,6 +51,8 @@ class CargoDocumentoSerializer(serializers.ModelSerializer):
 class CargoDocumentoCreateSerializer(serializers.ModelSerializer):
     """Serializer para criação de documento de cargo."""
 
+    documento_tipo = serializers.ChoiceField(choices=TipoDocumento.choices)
+
     class Meta:
         model = CargoDocumento
         fields = [
@@ -71,6 +74,8 @@ class CargoDocumentoCreateSerializer(serializers.ModelSerializer):
 
 class CargoDocumentoUpdateSerializer(serializers.ModelSerializer):
     """Serializer para atualização de documento de cargo."""
+
+    documento_tipo = serializers.ChoiceField(choices=TipoDocumento.choices, required=False)
 
     class Meta:
         model = CargoDocumento

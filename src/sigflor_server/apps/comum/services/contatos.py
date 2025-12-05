@@ -142,7 +142,7 @@ class ContatoService:
 
     @staticmethod
     @transaction.atomic
-    def add_contato_to_filial(
+    def criar_contato_filial(
         *,
         filial: Filial,
         tipo: str,

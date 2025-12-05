@@ -1,7 +1,5 @@
 from .pessoa_fisica import PessoaFisicaService
 from .pessoa_juridica import PessoaJuridicaService
-from .usuarios import UsuarioService
-from .permissoes import PermissaoService, PapelService
 from .empresas import EmpresaService
 from .clientes import ClienteService
 from .enderecos import EnderecoService
@@ -17,9 +15,6 @@ from .exame import ExameService
 __all__ = [
     'PessoaFisicaService',
     'PessoaJuridicaService',
-    'UsuarioService',
-    'PermissaoService',
-    'PapelService',
     'EmpresaService',
     'ClienteService',
     'EnderecoService',

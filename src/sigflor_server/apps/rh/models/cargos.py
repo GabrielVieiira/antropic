@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from apps.comum.models.base import SoftDeleteModel
+from .enums import NivelCargo
 
 
 class Cargo(SoftDeleteModel):
@@ -10,14 +11,6 @@ class Cargo(SoftDeleteModel):
     Cadastro de cargos da empresa.
     Define a posição, salário base, classificação CBO e níveis de risco ocupacional.
     """
-
-    class Nivel(models.TextChoices):
-        OPERACIONAL = 'OPERACIONAL', 'Operacional'
-        TECNICO = 'TECNICO', 'Técnico'
-        SUPERVISAO = 'SUPERVISAO', 'Supervisão'
-        COORDENACAO = 'COORDENACAO', 'Coordenação'
-        GERENCIA = 'GERENCIA', 'Gerência'
-        DIRETORIA = 'DIRETORIA', 'Diretoria'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -46,7 +39,7 @@ class Cargo(SoftDeleteModel):
     )
     nivel = models.CharField(
         max_length=20,
-        choices=Nivel.choices,
+        choices=NivelCargo.choices,
         help_text='Nível hierárquico do cargo'
     )
 

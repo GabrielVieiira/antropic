@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 from ..models import Cargo
+from ..models.enums import NivelCargo
 
 
 class CargoListSerializer(serializers.ModelSerializer):
@@ -22,7 +23,6 @@ class CargoListSerializer(serializers.ModelSerializer):
             'tem_risco',
             'funcionarios_count',
         ]
-
 
 class CargoSerializer(serializers.ModelSerializer):
     """Serializer completo para detalhes do Cargo."""
@@ -58,7 +58,6 @@ class CargoSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
 
-
 class CargoCreateSerializer(serializers.ModelSerializer):
     """Serializer para criação de Cargo."""
 
@@ -80,7 +79,7 @@ class CargoCreateSerializer(serializers.ModelSerializer):
             'ativo',
         ]
         extra_kwargs = {
-            'nivel': {'required': True},
+            'nivel': {'required': True, 'choices': NivelCargo.choices},
         }
 
     def create(self, validated_data):
@@ -91,7 +90,6 @@ class CargoCreateSerializer(serializers.ModelSerializer):
             created_by=self.context.get('request').user if self.context.get('request') else None,
             **validated_data
         )
-
 
 class CargoUpdateSerializer(serializers.ModelSerializer):
     """Serializer para atualização de Cargo."""
@@ -113,6 +111,9 @@ class CargoUpdateSerializer(serializers.ModelSerializer):
             # Status
             'ativo',
         ]
+        extra_kwargs = {
+            'nivel': {'required': False, 'choices': NivelCargo.choices},
+        }
 
     def update(self, instance, validated_data):
         """Atualiza cargo usando o service."""

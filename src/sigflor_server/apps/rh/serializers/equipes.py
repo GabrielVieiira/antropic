@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 from ..models import Equipe, EquipeFuncionario
+from ..models.enums import TipoEquipe
 
 
 # ============================================================================
@@ -78,6 +79,9 @@ class EquipeCreateSerializer(serializers.ModelSerializer):
             'coordenador',
             'observacoes',
         ]
+        extra_kwargs = {
+            'tipo_equipe': {'choices': TipoEquipe.choices}
+        }
 
     def create(self, validated_data):
         """Cria equipe usando o service."""
@@ -103,6 +107,9 @@ class EquipeUpdateSerializer(serializers.ModelSerializer):
             'ativa',
             'observacoes',
         ]
+        extra_kwargs = {
+            'tipo_equipe': {'choices': TipoEquipe.choices}
+        }
 
     def update(self, instance, validated_data):
         """Atualiza equipe usando o service."""

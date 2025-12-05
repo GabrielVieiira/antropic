@@ -148,7 +148,7 @@ class EnderecoService:
 
     @staticmethod
     @transaction.atomic
-    def add_endereco_to_filial(
+    def criar_endereco_filial(
         *,
         filial: Filial,
         logradouro: str,

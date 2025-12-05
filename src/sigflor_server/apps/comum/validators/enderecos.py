@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-
+from ..models.enums import UF
 
 class EnderecoValidator:
     @staticmethod
@@ -17,7 +17,7 @@ class EnderecoValidator:
         instance.estado = (instance.estado or '').strip().upper()
         instance.cep = EnderecoValidator._somente_digitos(instance.cep)
 
-        if instance.estado and instance.estado not in instance.UF.values:
+        if instance.estado and instance.estado not in UF.values:
             raise ValidationError({'estado': 'UF inválida.'})
         if len(instance.cep) != 8:
             raise ValidationError({'cep': 'CEP deve ter 8 dígitos (somente números).'})

@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 
 from .base import SoftDeleteModel
 from ..validators import validar_cpf
+from .enums import Sexo, EstadoCivil
 
 
 class PessoaFisica(SoftDeleteModel):
@@ -13,19 +14,6 @@ class PessoaFisica(SoftDeleteModel):
     Cadastro tecnico de pessoas fisicas.
     Nao e criado diretamente pelo usuario - apenas via modulos dependentes.
     """
-
-    class Sexo(models.TextChoices):
-        MASCULINO = 'M', 'Masculino'
-        FEMININO = 'F', 'Feminino'
-        OUTRO = 'O', 'Outro'
-
-    class EstadoCivil(models.TextChoices):
-        SOLTEIRO = 'solteiro', 'Solteiro(a)'
-        CASADO = 'casado', 'Casado(a)'
-        DIVORCIADO = 'divorciado', 'Divorciado(a)'
-        VIUVO = 'viuvo', 'Viuvo(a)'
-        SEPARADO = 'separado', 'Separado(a)'
-        UNIAO_ESTAVEL = 'uniao_estavel', 'Uniao Estavel'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome_completo = models.CharField(max_length=200)

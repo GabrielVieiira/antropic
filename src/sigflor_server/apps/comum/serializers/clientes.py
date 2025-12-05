@@ -26,7 +26,6 @@ class ClienteListSerializer(serializers.ModelSerializer):
         ]
 
 class ClienteSerializer(serializers.ModelSerializer):
-    """Serializer para leitura de Cliente."""
 
     pessoa_juridica = PessoaJuridicaSerializer(read_only=True)
 
@@ -46,43 +45,14 @@ class ClienteSerializer(serializers.ModelSerializer):
         ]
 
 class ClienteCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de Cliente."""
 
     pessoa_juridica = PessoaJuridicaCreateSerializer(required=True)
     empresa_gestora = serializers.PrimaryKeyRelatedField(required=True, queryset=Empresa.objects.all())
     class Meta:
         model = Cliente
         fields = [
-            'id',
             'pessoa_juridica',
             'descricao',
             'empresa_gestora',
             'ativo',
         ]
-        read_only_fields = ['id']
-
-    def create(self, validated_data):
-        from ..services import ClienteService
-
-        pessoa_juridica_data = validated_data.pop('pessoa_juridica')
-        
-        try:
-            return ClienteService.create(
-                pessoa_juridica_data=pessoa_juridica_data,
-                created_by=self.context.get('request').user if self.context.get('request') else None,
-                **validated_data
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
-
-    def update(self, instance, validated_data):
-        
-        from ..services import ClienteService
-        try:
-            return ClienteService.update(
-                contratante=instance,
-                updated_by=self.context.get('request').user if self.context.get('request') else None,
-                **validated_data
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))

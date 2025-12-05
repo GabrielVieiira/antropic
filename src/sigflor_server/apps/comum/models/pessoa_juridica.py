@@ -4,15 +4,7 @@ from django.db import models
 
 from .base import SoftDeleteModel
 from ..validators import validar_cnpj
-
-
-class SituacaoCadastral(models.TextChoices):
-    """Situação cadastral na Receita Federal."""
-    ATIVA = 'ativa', 'Ativa'
-    SUSPENSA = 'suspensa', 'Suspensa'
-    INAPTA = 'inapta', 'Inapta'
-    BAIXADA = 'baixada', 'Baixada'
-    NULA = 'nula', 'Nula'
+from .enums import SituacaoCadastral
 
 
 class PessoaJuridica(SoftDeleteModel):

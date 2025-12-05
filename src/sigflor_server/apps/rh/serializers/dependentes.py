@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from apps.comum.serializers.pessoa_fisica import PessoaFisicaSerializer, PessoaFisicaCreateSerializer
 from ..models import Dependente
+from ..models.enums import Parentesco
 
 
 class DependenteListSerializer(serializers.ModelSerializer):
@@ -84,6 +85,9 @@ class DependenteCreateSerializer(serializers.ModelSerializer):
             'parentesco',
             'dependencia_irrf',
         ]
+        extra_kwargs = {
+            'parentesco': {'choices': Parentesco.choices}
+        }
 
     def create(self, validated_data):
         """Cria dependente usando o service."""
@@ -114,6 +118,9 @@ class DependenteUpdateSerializer(serializers.ModelSerializer):
             'ativo',
             'pessoa_fisica', # Incluído aqui
         ]
+        extra_kwargs = {
+            'parentesco': {'choices': Parentesco.choices}
+        }
 
     def update(self, instance, validated_data):
         """Atualiza dependente usando o service."""
