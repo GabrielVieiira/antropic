@@ -218,3 +218,6 @@ site/
 # Backup files
 *.backup
 *.bkp
+
+CLAUDE.md
+GEMINI.md
