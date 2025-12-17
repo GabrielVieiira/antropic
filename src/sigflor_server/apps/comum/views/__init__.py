@@ -9,6 +9,7 @@ from .filiais import FilialViewSet
 from .projeto import ProjetoViewSet
 from .exame import ExameViewSet
 from .enums import EnumsView
+from .base import BaseRBACViewSet
 
 __all__ = [
     'EmpresaViewSet',
@@ -22,4 +23,5 @@ __all__ = [
     'ProjetoViewSet',
     'ExameViewSet',
     'EnumsView',
+    'BaseRBACViewSet'
 ]

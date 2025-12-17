@@ -9,25 +9,28 @@ from .models import (
 # ============ Inlines para RH ============ #
 
 class CargoDocumentoInline(admin.TabularInline):
+    """Define quais documentos são obrigatórios para o cargo diretamente na tela do Cargo."""
     model = CargoDocumento
     extra = 0
     fields = ['documento_tipo', 'obrigatorio', 'condicional']
-    raw_id_fields = [] # Nenhum raw_id_field aqui
+    raw_id_fields = [] 
 
 
 class AlocacaoInline(admin.TabularInline):
+    """Exibe o histórico de projetos (centros de custo) do funcionário."""
     model = Alocacao
     extra = 0
     fields = ['projeto', 'data_inicio', 'data_fim', 'observacoes']
     readonly_fields = ['observacoes']
-    raw_id_fields = ['projeto']
+    raw_id_fields = ['projeto'] # Otimização para muitos projetos
 
 
 class DependenteInline(admin.TabularInline):
+    """Gestão rápida de dependentes dentro do cadastro do funcionário."""
     model = Dependente
     extra = 0
     fields = [
-        'pessoa_fisica',
+        'pessoa_fisica', # Link para a pessoa física do dependente
         'parentesco',
         'dependencia_irrf',
         'ativo',
@@ -39,6 +42,7 @@ class DependenteInline(admin.TabularInline):
 
 
 class EquipeFuncionarioInline(admin.TabularInline):
+    """Lista os membros dentro do cadastro da Equipe."""
     model = EquipeFuncionario
     extra = 0
     fields = ['funcionario', 'data_entrada', 'data_saida']
@@ -62,7 +66,7 @@ class CargoAdmin(admin.ModelAdmin):
     list_filter = [
         'ativo',
         'nivel',
-        'risco_fisico',
+        'risco_fisico', # Filtros para encontrar cargos perigosos (SST)
         'risco_biologico',
         'risco_quimico',
         'risco_ergonomico',
@@ -83,7 +87,7 @@ class CargoAdmin(admin.ModelAdmin):
         'deleted_at',
     ]
     ordering = ['nome']
-    inlines = [CargoDocumentoInline] # Adicionado inline
+    inlines = [CargoDocumentoInline] # Configura documentos exigidos aqui
 
     fieldsets = (
         ('Dados do Cargo', {
@@ -91,7 +95,7 @@ class CargoAdmin(admin.ModelAdmin):
         }),
         ('Riscos Ocupacionais', {
             'fields': ('risco_fisico', 'risco_biologico', 'risco_quimico', 'risco_ergonomico', 'risco_acidente'),
-            'classes': ('collapse',)
+            'classes': ('collapse',) # Escondido por padrão para limpar a tela
         }),
         ('Descricao', {
             'fields': ('descricao',),
@@ -130,12 +134,12 @@ class FuncionarioAdmin(admin.ModelAdmin):
         'tem_dependente',
         'tipo_contrato',
         'empresa',
-        'projeto',
+        'projeto', # Filtro crucial para o "Tripé"
         'created_at',
     ]
     search_fields = [
         'matricula',
-        'pessoa_fisica__nome_completo',
+        'pessoa_fisica__nome_completo', # Busca pelo nome da PF
         'pessoa_fisica__cpf',
         'cargo__nome',
         'empresa__pessoa_juridica__razao_social',
@@ -155,6 +159,7 @@ class FuncionarioAdmin(admin.ModelAdmin):
         'updated_at',
         'deleted_at',
     ]
+    # Raw ID fields são vitais aqui para evitar carregar milhares de PFs no dropdown
     raw_id_fields = ['pessoa_fisica', 'cargo', 'empresa', 'projeto']
     ordering = ['pessoa_fisica__nome_completo']
     inlines = [DependenteInline, AlocacaoInline]

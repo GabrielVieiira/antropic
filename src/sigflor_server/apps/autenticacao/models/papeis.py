@@ -11,7 +11,7 @@ class Papel(SoftDeleteModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField(max_length=100, unique=True)
-    descricao = models.TextField(blank=True, null=True)
+    descricao = models.TextField(blank=True, default='')
     permissoes = models.ManyToManyField(
         'autenticacao.Permissao',
         blank=True,

@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from apps.autenticacao.models import Usuario
 from apps.comum.services import PessoaFisicaService
+from .dependentes import DependenteService
 from ..models import Funcionario, Alocacao, EquipeFuncionario, Equipe, StatusFuncionario
 
 

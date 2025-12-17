@@ -1,10 +1,9 @@
-from rest_framework import viewsets, status
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.core.exceptions import ValidationError as DjangoValidationError
 
 
-from ..models import Cliente
+from .base import BaseRBACViewSet
 from ..serializers import (
     ClienteSerializer, 
     ClienteCreateSerializer,
@@ -14,11 +13,14 @@ from ..services import ClienteService
 from .. import selectors
 
 
-class ClienteViewSet(viewsets.ModelViewSet):
-    """ViewSet para Cliente."""
+class ClienteViewSet(BaseRBACViewSet):
 
-    queryset = Cliente.objects.filter(deleted_at__isnull=True)
-    serializer_class = ClienteSerializer
+    permissao_leitura = 'comum_clientes_ler'
+    permissao_escrita = 'comum_clientes_escrever'
+    permissoes_acoes =  {
+        'ativar': 'comum_clientes_escrever',
+        'desativar': 'comum_clientes_escrever',
+    }
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -39,69 +41,42 @@ class ClienteViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            cliente = ClienteService.create(
-                validated_data=serializer.validated_data,
-                user=request.user
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
-
+        cliente = ClienteService.create(
+            validated_data=serializer.validated_data,
+            user=request.user
+        )
         output_serializer = ClienteSerializer(cliente)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk=None):
-        try:
-            cliente = selectors.cliente_detail(pk=pk)
-            serializer = self.get_serializer(cliente)
-            return Response(serializer.data)
-        except Cliente.DoesNotExist:
-            return Response(
-                {'detail': 'Cliente não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        cliente = self.get_object()
+        serializer = self.get_serializer(cliente)
+        return Response(serializer.data)
 
     def destroy(self, request, pk=None):
-        try:
-            cliente = Cliente.objects.get(pk=pk, deleted_at__isnull=True)
-            ClienteService.delete(cliente, user=request.user if request.user.is_authenticated else None)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Cliente.DoesNotExist:
-            return Response(
-                {'detail': 'Cliente não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
+        cliente = self.get_object()
+        ClienteService.delete(
+            cliente, 
+            user=request.user
             )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def ativar(self, request, pk=None):
-        """Ativa o cliente."""
-        try:
-            cliente = Cliente.objects.get(pk=pk, deleted_at__isnull=True)
+            cliente = self.get_object()
             ClienteService.ativar(
                 cliente,
-                updated_by=request.user if request.user.is_authenticated else None
+                updated_by=request.user
             )
             serializer = self.get_serializer(cliente)
             return Response(serializer.data)
-        except Cliente.DoesNotExist:
-            return Response(
-                {'detail': 'Cliente não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
 
     @action(detail=True, methods=['post'])
     def desativar(self, request, pk=None):
-        """Desativa o cliente."""
-        try:
-            cliente = Cliente.objects.get(pk=pk, deleted_at__isnull=True)
+            cliente = self.get_object()
             ClienteService.desativar(
                 cliente,
-                updated_by=request.user if request.user.is_authenticated else None
+                updated_by=request.user
             )
             serializer = self.get_serializer(cliente)
             return Response(serializer.data)
-        except Cliente.DoesNotExist:
-            return Response(
-                {'detail': 'Cliente não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )

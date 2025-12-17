@@ -6,13 +6,21 @@ from ..models import Usuario
 from ..serializers import UsuarioSerializer, UsuarioCreateSerializer
 from ..services import UsuarioService
 from .. import selectors
+from apps.comum.permissions import HasPermission
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     """ViewSet para Usuario."""
 
-    queryset = Usuario.objects.filter(deleted_at__isnull=True)
-    serializer_class = UsuarioSerializer
+    def get_permissions(self):
+        """
+        Instancia e retorna a lista de permissões que esta view exige.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [HasPermission('autenticacao_usuarios_visualizar')]
+        else:
+            permission_classes = [HasPermission('autenticacao_usuarios_editar')]
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:

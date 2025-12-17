@@ -18,7 +18,7 @@ class Permissao(SoftDeleteModel):
         help_text="Formato: modulo.entidade.acao (ex: core.usuarios.criar)"
     )
     nome = models.CharField(max_length=200)
-    descricao = models.TextField(blank=True, null=True)
+    descricao = models.TextField(blank=True, default='')
 
     class Meta:
         db_table = 'permissoes'

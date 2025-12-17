@@ -6,17 +6,24 @@ from .models import (
     Permissao,
     Papel,
 )
+
 # ============ Usuario ============ #
 
 @admin.register(Usuario)
 class UsuarioAdmin(BaseUserAdmin):
+    # Exibe campos essenciais na listagem, incluindo status e auditoria
     list_display = ['username', 'email', 'first_name', 'last_name', 'ativo', 'is_staff', 'created_at']
     list_filter = ['ativo', 'is_staff', 'is_superuser', 'created_at']
     search_fields = ['username', 'email', 'first_name', 'last_name']
+    
+    # Campos de auditoria protegidos contra edição manual
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at', 'last_login', 'date_joined']
     ordering = ['username']
+    
+    # Interface melhorada para selecionar muitos itens (N:N)
     filter_horizontal = ['papeis', 'permissoes_diretas', 'groups', 'user_permissions']
 
+    # Organização do formulário em seções lógicas
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Informacoes Pessoais', {'fields': ('first_name', 'last_name', 'email', 'pessoa_fisica')}),
@@ -36,6 +43,7 @@ class UsuarioAdmin(BaseUserAdmin):
         }),
     )
 
+    # Configuração para o formulário de "Adicionar Usuário"
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
@@ -71,7 +79,7 @@ class PapelAdmin(admin.ModelAdmin):
     list_display = ['nome', 'get_permissoes_count', 'created_at']
     search_fields = ['nome', 'descricao']
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at']
-    filter_horizontal = ['permissoes']
+    filter_horizontal = ['permissoes'] # Facilita a atribuição de muitas permissões
     ordering = ['nome']
 
     fieldsets = (
@@ -87,6 +95,7 @@ class PapelAdmin(admin.ModelAdmin):
         }),
     )
 
+    # Método auxiliar para mostrar a contagem na listagem
     def get_permissoes_count(self, obj):
         return obj.permissoes.count()
     get_permissoes_count.short_description = 'Qtd. Permissoes'
