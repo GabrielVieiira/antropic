@@ -7,6 +7,7 @@ from ..models.enums import Sexo, EstadoCivil, UF
 from .enderecos import PessoaFisicaEnderecoNestedSerializer, PessoaFisicaEnderecoListSerializer
 from .contatos import PessoaFisicaContatoNestedSerializer, PessoaFisicaContatoListSerializer
 from .documentos import PessoaFisicaDocumentoNestedSerializer, PessoaFisicaDocumentoListSerializer
+from .deficiencias import DeficienciaNestedSerializer, DeficienciaListSerializer
 from .anexos import AnexoSerializer, AnexoNestedSerializer
 
 
@@ -18,6 +19,8 @@ class PessoaFisicaSerializer(serializers.ModelSerializer):
     contatos = PessoaFisicaContatoListSerializer(many=True, read_only=True, source='contatos_vinculados')
     documentos = PessoaFisicaDocumentoListSerializer(many=True, read_only=True, source='documentos_vinculados')
     anexos = AnexoSerializer(many=True, read_only=True)
+    deficiencias = DeficienciaListSerializer(many=True, read_only=True)
+
 
     class Meta:
             model = PessoaFisica
@@ -37,13 +40,30 @@ class PessoaFisicaCreateSerializer(serializers.ModelSerializer):
     anexos = AnexoNestedSerializer(
         many=True, required=False, allow_empty=True, source='anexos_vinculados'
     )
+    deficiencias = DeficienciaNestedSerializer(
+        many=True, required=False, allow_empty=True
+    )
 
     class Meta:
         model = PessoaFisica
         fields = [
-            'nome_completo','nome_mae','nome_pai', 'cpf', 'rg', 'orgao_emissor', 'data_nascimento',
-            'sexo', 'estado_civil', 'nacionalidade', 'naturalidade', 'observacoes',
-            'enderecos', 'contatos', 'documentos', 'anexos'
+            'nome_completo',
+            'nome_mae',
+            'nome_pai', 
+            'cpf', 
+            'rg', 
+            'orgao_emissor', 
+            'data_nascimento',
+            'sexo', 
+            'estado_civil', 
+            'nacionalidade', 
+            'naturalidade', 
+            'observacoes',
+            'enderecos', 
+            'contatos', 
+            'documentos', 
+            'anexos',
+            'deficiencias',
         ]
         extra_kwargs = {
             'cpf': {
@@ -65,7 +85,6 @@ class PessoaFisicaCreateSerializer(serializers.ModelSerializer):
         }
 
     def validate_cpf(self, value):
-        """Remove formatação do CPF e valida manualmente."""
         cleaned_value = ''.join(filter(str.isdigit, value))
 
         try:

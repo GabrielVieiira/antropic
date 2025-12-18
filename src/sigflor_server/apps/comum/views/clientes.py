@@ -48,18 +48,18 @@ class ClienteViewSet(BaseRBACViewSet):
         output_serializer = ClienteSerializer(cliente)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
-    def retrieve(self, request, pk=None):
-        cliente = self.get_object()
-        serializer = self.get_serializer(cliente)
-        return Response(serializer.data)
-
-    def destroy(self, request, pk=None):
-        cliente = self.get_object()
-        ClienteService.delete(
-            cliente, 
-            user=request.user
+    def perform_update(self, serializer):
+            ClienteService.update(
+                cliente=serializer.instance,
+                updated_by=self.request.user,
+                **serializer.validated_data
             )
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+            ClienteService.delete(
+                instance, 
+                user=self.request.user
+            )
 
     @action(detail=True, methods=['post'])
     def ativar(self, request, pk=None):

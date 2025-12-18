@@ -4,14 +4,9 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     EmpresaViewSet,
     ClienteViewSet,
-    EnderecoViewSet,
-    ContatoViewSet,
-    DocumentoViewSet,
-    AnexoViewSet,
-    DeficienciaViewSet,
+    DeficienciaRelatoriosViewSet,
     FilialViewSet,
     ProjetoViewSet,
-    ExameViewSet,
     EnumsView
 )
 
@@ -26,13 +21,8 @@ router.register(r'filiais', FilialViewSet, basename='filial')
 router.register(r'projetos', ProjetoViewSet, basename='projeto')
 
 
-# Entidades genericas (polimorficas)
-# router.register(r'enderecos', EnderecoViewSet, basename='endereco')
-# router.register(r'contatos', ContatoViewSet, basename='contato')
-# router.register(r'documentos', DocumentoViewSet, basename='documento')
-# router.register(r'anexos', AnexoViewSet, basename='anexo')
-# router.register(r'deficiencias', DeficienciaViewSet, basename='deficiencia')
-# router.register(r'exames', ExameViewSet, basename='exame')
+
+router.register(r'deficiencias', DeficienciaRelatoriosViewSet, basename='deficiencia')
 
 urlpatterns = [
     path('', include(router.urls)),

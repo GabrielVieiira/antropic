@@ -3,6 +3,7 @@ from typing import Optional
 from django.db import transaction
 
 from ..models import Deficiencia, PessoaFisica
+from ..models.enums import TipoDeficiencia
 
 
 class DeficienciaService:
@@ -12,22 +13,19 @@ class DeficienciaService:
     def create(
         pessoa_fisica: PessoaFisica,
         nome: str,
-        tipo: str = None,
+        tipo: str = '',
         cid: Optional[str] = None,
         grau: Optional[str] = None,
-        data_diagnostico=None,
         congenita: bool = False,
         observacoes: Optional[str] = None,
         created_by=None,
     ) -> Deficiencia:
-        """Cria uma nova Deficiencia para uma pessoa fisica."""
         deficiencia = Deficiencia(
             pessoa_fisica=pessoa_fisica,
             nome=nome,
-            tipo=tipo or Deficiencia.TipoDeficiencia.OUTRA,
+            tipo=tipo or TipoDeficiencia.OUTRA,
             cid=cid,
             grau=grau,
-            data_diagnostico=data_diagnostico,
             congenita=congenita,
             observacoes=observacoes,
             created_by=created_by,
@@ -40,10 +38,13 @@ class DeficienciaService:
     def update(deficiencia: Deficiencia, updated_by=None, **kwargs) -> Deficiencia:
         kwargs.pop('pessoa_fisica', None)
         kwargs.pop('pessoa_fisica_id', None)
+        
+        kwargs.pop('data_diagnostico', None)
 
         for attr, value in kwargs.items():
             if hasattr(deficiencia, attr):
                 setattr(deficiencia, attr, value)
+        
         deficiencia.updated_by = updated_by
         deficiencia.save()
         return deficiencia
@@ -52,24 +53,3 @@ class DeficienciaService:
     @transaction.atomic
     def delete(deficiencia: Deficiencia, user=None) -> None:
         deficiencia.delete(user=user)
-
-    @staticmethod
-    def get_deficiencias_por_pessoa(pessoa_fisica: PessoaFisica) -> list:
-        return list(Deficiencia.objects.filter(
-            pessoa_fisica=pessoa_fisica,
-            deleted_at__isnull=True
-        ).order_by('nome'))
-
-    @staticmethod
-    def get_deficiencias_por_tipo(tipo: str) -> list:
-        return list(Deficiencia.objects.filter(
-            tipo=tipo,
-            deleted_at__isnull=True
-        ).select_related('pessoa_fisica').order_by('pessoa_fisica__nome_completo'))
-
-    @staticmethod
-    def get_deficiencias_por_cid(cid: str) -> list:
-        return list(Deficiencia.objects.filter(
-            cid__icontains=cid,
-            deleted_at__isnull=True
-        ).select_related('pessoa_fisica').order_by('pessoa_fisica__nome_completo'))

@@ -1,11 +1,12 @@
 from typing import Optional, List
 from django.db import transaction
 
-from ..models import PessoaFisica, Endereco, Contato, Documento, Anexo
+from ..models import PessoaFisica
 from .enderecos import EnderecoService
 from .contatos import ContatoService
 from .documentos import DocumentoService
 from .anexos import AnexoService
+from .deficiencias import DeficienciaService
 from .utils import ServiceUtils
 
 
@@ -78,12 +79,12 @@ class PessoaFisicaService:
     @staticmethod
     @transaction.atomic
     def update(pessoa: PessoaFisica, updated_by=None, **kwargs) -> PessoaFisica:
-        """Atualiza uma Pessoa Física e sincroniza suas listas aninhadas."""
         
         enderecos = kwargs.pop('enderecos', None)
         contatos = kwargs.pop('contatos', None)
         documentos = kwargs.pop('documentos', None)
         anexos = kwargs.pop('anexos', None)
+        deficiencias = kwargs.pop('deficiencias', None)
 
         for attr, value in kwargs.items():
             if hasattr(pessoa, attr):
@@ -96,9 +97,10 @@ class PessoaFisicaService:
                 entidade_pai=pessoa,
                 dados_lista=enderecos,
                 service_filho=EnderecoService,
-                model_filho=Endereco,
                 user=updated_by,
-                metodo_busca_existentes='get_enderecos_por_entidade'
+                metodo_busca_existentes='get_enderecos_pessoa_fisica',
+                metodo_criar='criar_endereco_pessoa_fisica', #
+                campo_entidade_pai='pessoa_fisica'
             )
 
         if contatos is not None:
@@ -106,9 +108,10 @@ class PessoaFisicaService:
                 entidade_pai=pessoa,
                 dados_lista=contatos,
                 service_filho=ContatoService,
-                model_filho=Contato,
                 user=updated_by,
-                metodo_busca_existentes='get_contatos_por_entidade'
+                metodo_busca_existentes='get_contatos_pessoa_fisica',
+                metodo_criar='add_contato_to_pessoa_fisica', #
+                campo_entidade_pai='pessoa_fisica'
             )
 
         if documentos is not None:
@@ -116,9 +119,10 @@ class PessoaFisicaService:
                 entidade_pai=pessoa,
                 dados_lista=documentos,
                 service_filho=DocumentoService,
-                model_filho=Documento,
                 user=updated_by,
-                metodo_busca_existentes='get_documentos_por_entidade'
+                metodo_busca_existentes='get_documentos_pessoa_fisica',
+                metodo_criar='criar_documento_pessoa_fisica', #
+                campo_entidade_pai='pessoa_fisica'
             )
 
         if anexos is not None:
@@ -126,10 +130,21 @@ class PessoaFisicaService:
                 entidade_pai=pessoa,
                 dados_lista=anexos,
                 service_filho=AnexoService,
-                model_filho=Anexo,
                 user=updated_by,
                 metodo_busca_existentes='get_anexos_por_entidade'
             )
+
+        if deficiencias is not None:
+            ServiceUtils.sincronizar_lista_aninhada(
+                entidade_pai=pessoa,
+                dados_lista=deficiencias,
+                service_filho=DeficienciaService,
+                user=updated_by,
+                metodo_busca_existentes='get_anexos_por_entidade',
+                metodo_criar='add_deficiencia_to_pessoa_fisica', #
+                campo_entidade_pai='pessoa_fisica'
+            )
+
 
         return pessoa
 

@@ -39,19 +39,14 @@ class ClienteService:
     @staticmethod
     @transaction.atomic
     def update(cliente: Cliente, updated_by=None, **kwargs) -> Cliente:
-        """Atualiza um Cliente e seus dados vinculados de Pessoa Jurídica."""
-        
-        # 1. Extrair dados da Pessoa Jurídica (se houver)
         pessoa_juridica_data = kwargs.pop('pessoa_juridica', None)
 
-        # 2. Atualizar dados do próprio Cliente
         for attr, value in kwargs.items():
             if hasattr(cliente, attr):
                 setattr(cliente, attr, value)
         cliente.updated_by = updated_by
         cliente.save()
 
-        # 3. Delegar atualização da Pessoa Jurídica (incluindo listas aninhadas)
         if pessoa_juridica_data:
             PessoaJuridicaService.update(
                 pessoa=cliente.pessoa_juridica,
@@ -64,13 +59,11 @@ class ClienteService:
     @staticmethod
     @transaction.atomic
     def delete(cliente: Cliente, user=None) -> None:
-        """Soft delete de um Cliente."""
         cliente.delete(user=user)
 
     @staticmethod
     @transaction.atomic
     def ativar(cliente: Cliente, updated_by=None) -> Cliente:
-        """Ativa um cliente."""
         cliente.ativo = True
         cliente.updated_by = updated_by
         cliente.save()
@@ -79,7 +72,6 @@ class ClienteService:
     @staticmethod
     @transaction.atomic
     def desativar(cliente: Cliente, updated_by=None) -> Cliente:
-        """Desativa um cliente."""
         cliente.ativo = False
         cliente.updated_by = updated_by
         cliente.save()
