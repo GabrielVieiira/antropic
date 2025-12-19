@@ -1,54 +1,36 @@
+# src/sigflor_server/core/exceptions.py
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.exceptions import ValidationError as DjangoValidationError, ObjectDoesNotExist
 
 def custom_exception_handler(exc, context):
     """
-    Handler de exceções customizado para a API do DRF.
-    Garante respostas de erro padronizadas e amigáveis.
+    Handler global para converter exceções do Django/Service em respostas DRF.
     """
+    
+    if isinstance(exc, DjangoValidationError):
+        if hasattr(exc, 'message_dict'):
+            data = exc.message_dict
+        elif hasattr(exc, 'messages'):
+            data = {'detail': exc.messages}
+        else:
+            data = {'detail': str(exc)}
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-    # Chama o handler padrão do DRF para obter a resposta inicial.
+    if isinstance(exc, ObjectDoesNotExist):
+        return Response(
+            {'detail': 'Registro não encontrado.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
     response = exception_handler(exc, context)
 
     if response is not None:
-        # Se for um erro de validação (400 Bad Request)
         if response.status_code == status.HTTP_400_BAD_REQUEST:
-            # A resposta padrão do DRF já vem com os detalhes por campo,
-            # apenas ajustamos a estrutura da mensagem principal, se necessário.
-            detail_message = "Verifique os dados informados." 
-            field_errors = response.data
-            
             response.data = {
-                'detail': detail_message,
-                'field_errors': field_errors
+                'detail': 'Verifique os dados informados.',
+                'errors': response.data
             }
-        
-        # Para outros erros tratados pelo DRF (ex: 404 Not Found, 403 Forbidden)
-        elif isinstance(response.data, dict) and 'detail' in response.data:
-            # Simplifica a mensagem de detalhe, se for o caso
-            response.data = {
-                'detail': str(response.data['detail'])
-            }
-        elif isinstance(response.data, list) and response.data: # Ex: lista de strings de erro
-            response.data = {
-                'detail': ", ".join(response.data)
-            }
-        else:
-            # Para casos genéricos que o DRF tratou, mas sem 'detail' claro
-            response.data = {
-                'detail': 'Ocorreu um erro inesperado.'
-            }
-        
-    else:
-        # Para exceções não tratadas pelo DRF (erros 500 internos)
-        # Nestes casos, `exc` é a exceção original.
-        # Logar o erro completo aqui seria crucial.
-        print(f"Erro interno do servidor: {exc}") # Substituir por um sistema de logging real
-
-        response = Response(
-            {'detail': 'Ocorreu um erro interno no servidor. Por favor, tente novamente mais tarde.'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
 
     return response

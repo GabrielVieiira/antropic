@@ -2,7 +2,6 @@ from django.db.models import QuerySet, Q
 from ..models import Empresa
 
 def empresa_list(*, filters: dict = None, search: str = None, ativa: bool = None) -> QuerySet:
-    """Lista empresas do grupo com filtros opcionais."""
     qs = Empresa.objects.filter(deleted_at__isnull=True).select_related('pessoa_juridica')
 
     if ativa is not None:
@@ -21,7 +20,6 @@ def empresa_list(*, filters: dict = None, search: str = None, ativa: bool = None
 
 
 def empresa_detail(*, pk) -> Empresa:
-    """Obtem detalhes de uma empresa com relacionamentos."""
     return Empresa.objects.select_related(
         'pessoa_juridica'
     ).prefetch_related(

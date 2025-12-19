@@ -31,7 +31,6 @@ def cliente_list(
 
 
 def cliente_detail(*, pk) -> Cliente:
-    """Obtem detalhes de um cliente com relacionamentos."""
     return Cliente.objects.select_related(
         'pessoa_juridica', 'empresa_gestora'
     ).prefetch_related(

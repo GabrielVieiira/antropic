@@ -1,4 +1,4 @@
-from apps.comum.models import Exame
+from ..models import Exame
 from django.db import transaction
 
 
@@ -8,7 +8,7 @@ class ExameService:
     """
 
     @staticmethod
-    def create_exame(*, nome: str) -> Exame:
+    def create(*, nome: str) -> Exame:
         """
         Cria um novo Exame.
         """
@@ -17,7 +17,7 @@ class ExameService:
         return exame
 
     @staticmethod
-    def update_exame(*, instance: Exame, nome: str = None) -> Exame:
+    def update(*, instance: Exame, nome: str = None) -> Exame:
         """
         Atualiza um Exame existente.
         """
@@ -28,7 +28,7 @@ class ExameService:
         return instance
 
     @staticmethod
-    def delete_exame(*, instance: Exame):
+    def delete(*, instance: Exame):
         """
         Realiza o soft delete de um exame.
         """

@@ -1,8 +1,8 @@
 from django.db import models
-from apps.comum.models.base import SoftDeleteModel, AuditModel
+from apps.comum.models.base import SoftDeleteModel
 
 
-class Exame(SoftDeleteModel, AuditModel):
+class Exame(SoftDeleteModel):
 
     nome = models.CharField(max_length=100, unique=True, verbose_name="Nome do Exame")
     descricao = models.TextField(blank=True, default='', verbose_name="Descrição do Exame")

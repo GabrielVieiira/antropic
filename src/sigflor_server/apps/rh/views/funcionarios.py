@@ -54,15 +54,12 @@ class FuncionarioViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         pesoa_fisica_data = serializer.validated_data.pop('pessoa_fisica')
         funcionario_data = serializer.validated_data
-        try:
-            funcionario = FuncionarioService.create(
-                user=request.user,
-                pessoa_fisica_data=pesoa_fisica_data,
-                funcionario_data=funcionario_data
-            )
-            output_serializer = FuncionarioSerializer(funcionario)
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
+        funcionario = FuncionarioService.create(
+            user=request.user,
+            pessoa_fisica_data=pesoa_fisica_data,
+            funcionario_data=funcionario_data
+        )
+        output_serializer = FuncionarioSerializer(funcionario)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=['post'], url_path='dependentes')

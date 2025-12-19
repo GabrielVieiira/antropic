@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
-from rest_framework import viewsets, status, serializers
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.core.exceptions import ValidationError as DjangoValidationError
 
-from ..models import Filial
+from .base import BaseRBACViewSet
 from ..serializers import FilialSerializer, FilialCreateSerializer, FilialListSerializer
 from ..services import FilialService
 from .. import selectors
 
 
-class FilialViewSet(viewsets.ModelViewSet):
-    """ViewSet para Filial."""
+class FilialViewSet(BaseRBACViewSet):
 
-    queryset = Filial.objects.filter(deleted_at__isnull=True)
-    serializer_class = FilialSerializer
+    permissao_leitura = 'comum_filiais_ler'
+    permissao_escrita = 'comum_filiais_escrever'
+    permissoes_acoes =  {
+        'ativar': 'comum_filiais_escrever',
+        'desativar': 'comum_filiais_escrever',
+        'suspender': 'comum_filiais_escrever',
+        'ativas': 'comum_filiais_ler',
+        'estatisticas': 'comum_filiais_ler',
+    }
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -34,103 +39,85 @@ class FilialViewSet(viewsets.ModelViewSet):
             status=status_param,
             empresa_id=empresa_id
         )
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            filial = FilialService.create(
-                validated_data=serializer.validated_data,
-                user=request.user
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
+        enderecos = serializer.validated_data.pop('enderecos')
+        contatos = serializer.validated_data.pop('contatos')
+        filial_data = serializer.validated_data
+        filial = FilialService.create(
+            user = request.user,
+            enderecos = enderecos,
+            contatos = contatos,
+            nome = filial_data.get('nome'),
+            codigo_interno = filial_data.get('codigo_interno'),
+            status = filial_data.get('status'),
+            descricao = filial_data.get('descricao'),
+            empresa = filial_data.get('empresa')
+        )
         output_serializer = FilialSerializer(filial)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
+    def perform_update(self, serializer):
+
+        FilialService.update(
+            filial=serializer.instance,
+            user=self.request.user,
+            **serializer.validated_data
+        )
+
     def retrieve(self, request, pk=None):
-        try:
-            filial = selectors.filial_detail(user=request.user,pk=pk)
-            serializer = self.get_serializer(filial)
-            return Response(serializer.data)
-        except Filial.DoesNotExist:
-            return Response(
-                {'detail': 'Filial nao encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        filial = selectors.filial_detail(user=request.user,pk=pk)
+        serializer = self.get_serializer(filial)
+        return Response(serializer.data)
 
-    def destroy(self, request, pk=None):
-        try:
-            filial = Filial.objects.get(pk=pk, deleted_at__isnull=True)
-            FilialService.delete(filial, user=request.user if request.user.is_authenticated else None)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Filial.DoesNotExist:
-            return Response(
-                {'detail': 'Filial nao encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
+    def perform_destroy(self, instance):
+        FilialService.delete(instance, user=self.request.user)
+    
     @action(detail=True, methods=['post'])
     def ativar(self, request, pk=None):
-        """Ativa a filial."""
-        try:
-            filial = Filial.objects.get(pk=pk, deleted_at__isnull=True)
-            FilialService.ativar(
-                filial,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = self.get_serializer(filial)
-            return Response(serializer.data)
-        except Filial.DoesNotExist:
-            return Response(
-                {'detail': 'Filial nao encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        filial = self.get_object()
+        FilialService.ativar(
+            filial,
+            user=request.user
+        )
+        serializer = self.get_serializer(filial)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def desativar(self, request, pk=None):
-        """Desativa a filial."""
-        try:
-            filial = Filial.objects.get(pk=pk, deleted_at__isnull=True)
-            FilialService.desativar(
-                filial,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = self.get_serializer(filial)
-            return Response(serializer.data)
-        except Filial.DoesNotExist:
-            return Response(
-                {'detail': 'Filial nao encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
+        filial = self.get_object()
+        FilialService.desativar(
+            filial,
+            user = request.user
+        )
+        serializer = self.get_serializer(filial)
+        return Response(serializer.data)
+    
     @action(detail=True, methods=['post'])
     def suspender(self, request, pk=None):
-        """Suspende a filial."""
-        try:
-            filial = Filial.objects.get(pk=pk, deleted_at__isnull=True)
-            FilialService.suspender(
-                filial,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = self.get_serializer(filial)
-            return Response(serializer.data)
-        except Filial.DoesNotExist:
-            return Response(
-                {'detail': 'Filial nao encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        filial = self.get_object()
+        FilialService.suspender(
+            filial,
+            user=request.user
+        )
+        serializer = self.get_serializer(filial)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def ativas(self, request):
-        """Lista filiais ativas."""
         empresa_id = request.query_params.get('empresa_id')
-        filiais = selectors.filiais_ativas(empresa_id=empresa_id)
+        filiais = selectors.filiais_ativas(
+            user=request.user,
+            empresa_id=empresa_id
+            )
         serializer = FilialListSerializer(filiais, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def estatisticas(self, request):
-        """Retorna estatisticas de filiais."""
-        stats = selectors.estatisticas_filiais()
+        stats = selectors.estatisticas_filiais(
+            user=request.user
+        )
         return Response(stats)

@@ -36,7 +36,7 @@ class ContatoService:
 
     @staticmethod
     @transaction.atomic
-    def criar_contato_para_pessoa_juridica(
+    def vincular_contato_pessoa_juridica(
         *,
         pessoa_juridica: PessoaJuridica,
         tipo: str,
@@ -87,7 +87,7 @@ class ContatoService:
 
     @staticmethod
     @transaction.atomic
-    def add_contato_to_pessoa_fisica(
+    def vincular_contato_pessoa_fisica(
         *,
         pessoa_fisica: PessoaFisica,
         tipo: str,
@@ -142,7 +142,7 @@ class ContatoService:
 
     @staticmethod
     @transaction.atomic
-    def criar_contato_filial(
+    def vincular_contato_filial(
         *,
         filial: Filial,
         tipo: str,
@@ -220,5 +220,19 @@ class ContatoService:
     def get_contatos_pessoa_juridica(pessoa_juridica: PessoaJuridica) -> list:
         return list(PessoaJuridicaContato.objects.filter(
             pessoa_juridica=pessoa_juridica,
+            deleted_at__isnull=True
+        ).select_related('contato').order_by('-principal', 'contato__tipo'))
+    
+    @staticmethod
+    def get_contatos_pessoa_fisica(pessoa_fisica: PessoaFisica) -> list:
+        return list(PessoaFisicaContato.objects.filter(
+            pessoa_fisica=pessoa_fisica,
+            deleted_at__isnull=True
+        ).select_related('contato').order_by('-principal', 'contato__tipo'))
+
+    @staticmethod
+    def get_contatos_filial(filial) -> list:
+        return list(FilialContato.objects.filter(
+            filial=filial,
             deleted_at__isnull=True
         ).select_related('contato').order_by('-principal', 'contato__tipo'))

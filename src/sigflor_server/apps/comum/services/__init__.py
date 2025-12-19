@@ -9,7 +9,7 @@ from .anexos import AnexoService
 from .deficiencias import DeficienciaService
 from .filiais import FilialService
 from .projeto import ProjetoService
-from .exame import ExameService
+from ...sst.services.exame import ExameService
 
 __all__ = [
     'PessoaFisicaService',

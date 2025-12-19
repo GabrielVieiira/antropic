@@ -16,4 +16,3 @@ from .anexo import *     # Contém anexo_list_por_entidade
 from .deficiencia import *
 from .filial import *
 from .projeto import *
-from .exame import *

@@ -27,7 +27,7 @@ from .projeto import (
     ProjetoCreateSerializer,
     ProjetoUpdateSerializer
 )
-from .exame import ExameSerializer
+from ...sst.serializers.exame import ExameSerializer
 
 __all__ = [
     'PessoaFisicaSerializer',

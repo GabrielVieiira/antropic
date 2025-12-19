@@ -68,7 +68,7 @@ class DocumentoService:
 
     @staticmethod
     @transaction.atomic
-    def criar_documento_pessoa_fisica(
+    def vincular_documento_pessoa_fisica(
         *,
         pessoa_fisica: PessoaFisica,
         tipo: str,
@@ -114,7 +114,7 @@ class DocumentoService:
 
     @staticmethod
     @transaction.atomic
-    def add_documento_to_pessoa_juridica(
+    def vincular_documento_pessoa_juridica(
         *,
         pessoa_juridica: PessoaJuridica,
         tipo: str,

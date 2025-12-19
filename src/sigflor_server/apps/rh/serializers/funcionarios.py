@@ -126,24 +126,19 @@ class FuncionarioCreateSerializer(serializers.ModelSerializer):
             'tipo_contrato',
             'data_admissao',
             'salario_nominal',
-            # Dados físicos
             'peso_corporal',
             'altura',
-            # Dados adicionais
             'indicacao',
             'cidade_atual',
-            # Documentação trabalhista
             'ctps_numero',
             'ctps_serie',
             'ctps_uf',
             'pis_pasep',
-            # Dados bancários
             'banco',
             'agencia',
             'conta_corrente',
             'tipo_conta',
             'chave_pix',
-            # Uniforme
             'tamanho_camisa',
             'tamanho_calca',
             'tamanho_calcado',

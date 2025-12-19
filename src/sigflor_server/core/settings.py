@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'apps.autenticacao',
     'apps.comum',
     'apps.rh',
+    'apps.sst',
 ]
 
 # Custom User Model
@@ -131,7 +132,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny', 
     ],
-    # 'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 }
 
 SIMPLE_JWT = {

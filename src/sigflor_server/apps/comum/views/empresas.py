@@ -1,8 +1,8 @@
-from rest_framework import viewsets, status
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.core.exceptions import ValidationError as DjangoValidationError
 
+from .base import BaseRBACViewSet
 from ..models import Empresa
 from ..serializers import (
     EmpresaSerializer, 
@@ -13,11 +13,13 @@ from ..services import EmpresaService
 from .. import selectors
 
 
-class EmpresaViewSet(viewsets.ModelViewSet):
-    """ViewSet para Empresa."""
-
-    queryset = Empresa.objects.filter(deleted_at__isnull=True)
-    serializer_class = EmpresaSerializer
+class EmpresaViewSet(BaseRBACViewSet):
+    
+    permissao_leitura = 'comum_empresas_ler'
+    permissao_escrita = 'comum_empresas_escrever'
+    permissoes_acoes =  {
+        'tornar_matriz': 'comum_empresas_escrever',
+    }
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -38,51 +40,42 @@ class EmpresaViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            empresa = EmpresaService.create(
-                validated_data=serializer.validated_data,
-                user=request.user
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
+        pessoa_juridica_data = serializer.validated_data.pop('pessoa_juridica')
+        descricao = serializer.validated_data.get('descricao', '')
+        ativa = serializer.validated_data.get('ativa', True)
+        empresa = EmpresaService.create(
+            user=request.user, 
+            pessoa_juridica_data=pessoa_juridica_data,
+            descricao=descricao,
+            ativa=ativa
+        )
         output_serializer = EmpresaSerializer(empresa)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
-    def retrieve(self, request, pk=None):
-        try:
-            empresa = selectors.empresa_detail(pk=pk)
-            serializer = self.get_serializer(empresa)
-            return Response(serializer.data)
-        except Empresa.DoesNotExist:
-            return Response(
-                {'detail': 'Empresa não encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def perform_update(self, serializer):
+        pj_data = serializer.validated_data.pop('pessoa_juridica', None)
+        
+        EmpresaService.update(
+            empresa=serializer.instance,
+            updated_by=self.request.user,
+            pessoa_juridica=pj_data,
+            **serializer.validated_data
+        )
 
-    def destroy(self, request, pk=None):
-        try:
-            empresa = selectors.empresa_detail(pk=pk)
-            EmpresaService.delete(empresa, user=request.user if request.user.is_authenticated else None)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Empresa.DoesNotExist:
-            return Response(
-                {'detail': 'Empresa não encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def retrieve(self, request, pk=None):
+        empresa = selectors.empresa_detail(pk=pk)
+        serializer = self.get_serializer(empresa)
+        return Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        EmpresaService.delete(instance, user=self.request.user)
 
     @action(detail=True, methods=['post'])
     def tornar_matriz(self, request, pk=None):
-        """Define esta empresa como matriz."""
-        try:
-            empresa = Empresa.objects.get(pk=pk, deleted_at__isnull=True)
-            EmpresaService.tornar_matriz(
-                empresa,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = self.get_serializer(empresa)
-            return Response(serializer.data)
-        except Empresa.DoesNotExist:
-            return Response(
-                {'detail': 'Empresa não encontrada.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        empresa = self.get_object()
+        EmpresaService.tornar_matriz(
+            empresa, 
+            updated_by=request.user
+        )
+        serializer = self.get_serializer(empresa)
+        return Response(serializer.data)

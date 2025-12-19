@@ -12,6 +12,7 @@ from .utils import ServiceUtils
 
 
 class PessoaJuridicaService:
+
     @staticmethod
     @transaction.atomic
     def create(
@@ -44,7 +45,7 @@ class PessoaJuridicaService:
 
         if enderecos:
             for end_data in enderecos:
-                EnderecoService.criar_endereco_pessoa_juridica(
+                EnderecoService.vincular_endereco_pessoa_juridica(
                     pessoa_juridica=pessoa,
                     created_by=created_by,
                     **end_data
@@ -52,7 +53,7 @@ class PessoaJuridicaService:
 
         if contatos:
             for ctt_data in contatos:
-                ContatoService.criar_contato_para_pessoa_juridica(
+                ContatoService.vincular_contato_pessoa_juridica(
                     pessoa_juridica=pessoa,
                     created_by=created_by,
                     **ctt_data
@@ -61,7 +62,7 @@ class PessoaJuridicaService:
         if documentos:
             for doc_data in documentos:
                 doc_data.pop('id', None)
-                DocumentoService.add_documento_to_pessoa_juridica(
+                DocumentoService.vincular_documento_pessoa_juridica(
                     pessoa_juridica=pessoa,
                     created_by=created_by,
                     **doc_data

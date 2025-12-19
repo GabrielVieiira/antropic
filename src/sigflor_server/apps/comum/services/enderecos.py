@@ -42,7 +42,7 @@ class EnderecoService:
 
     @staticmethod
     @transaction.atomic
-    def criar_endereco_pessoa_fisica(
+    def vincular_endereco_pessoa_fisica(
         *,
         pessoa_fisica: PessoaFisica,
         logradouro: str,
@@ -96,7 +96,7 @@ class EnderecoService:
 
     @staticmethod
     @transaction.atomic
-    def criar_endereco_pessoa_juridica(
+    def vincular_endereco_pessoa_juridica(
         *,
         pessoa_juridica: PessoaJuridica,
         logradouro: str,
@@ -147,7 +147,7 @@ class EnderecoService:
 
     @staticmethod
     @transaction.atomic
-    def criar_endereco_filial(
+    def vincular_endereco_filial(
         *,
         filial: Filial,
         logradouro: str,

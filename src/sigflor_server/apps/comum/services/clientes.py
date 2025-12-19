@@ -1,6 +1,8 @@
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
+from apps.autenticacao.models.usuarios import Usuario
+
 from ..models import Cliente
 from .pessoa_juridica import PessoaJuridicaService
 
@@ -10,11 +12,14 @@ class ClienteService:
     @staticmethod
     @transaction.atomic
     def create(
-        user,
-        validated_data: dict,
+        *,
+        user:Usuario,
+        pessoa_juridica_data: dict,
+        descricao: str = '',
+        ativo: bool = True,
+        empresa_gestora=None
     ) -> Cliente:
         
-        pessoa_juridica_data = validated_data.pop('pessoa_juridica')
         cnpj = pessoa_juridica_data.pop('cnpj')
 
         pessoa_juridica, _ = PessoaJuridicaService.get_or_create_by_cnpj(
@@ -28,9 +33,9 @@ class ClienteService:
 
         cliente = Cliente(
             pessoa_juridica=pessoa_juridica,
-            descricao=validated_data.get('descricao'),
-            ativo=validated_data.get('ativo'),
-            empresa_gestora=validated_data.get('empresa_gestora'),
+            descricao=descricao,
+            ativo=ativo,
+            empresa_gestora=empresa_gestora,
             created_by=user,
         )
         cliente.save()

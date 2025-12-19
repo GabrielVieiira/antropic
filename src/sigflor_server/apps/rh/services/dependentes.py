@@ -13,7 +13,7 @@ class DependenteService:
 
     @staticmethod
     @transaction.atomic
-    def vincular_dependente(
+    def create(
         *,
         funcionario: Funcionario,
         pessoa_fisica_data: dict,
@@ -43,10 +43,8 @@ class DependenteService:
         Raises:
             ValidationError: Se dados inválidos ou dependente já existe
         """
-        # 1. Gerenciamento de PessoaFisica do dependente
         cpf = pessoa_fisica_data.get('cpf')
         if cpf:
-            # Tenta buscar pessoa física existente pelo CPF
             cpf_limpo = cpf.replace('.', '').replace('-', '')
             pessoa_fisica = PessoaFisica.objects.filter(
                 cpf=cpf_limpo,
@@ -54,7 +52,6 @@ class DependenteService:
             ).first()
 
             if pessoa_fisica:
-                # Verifica se já é dependente deste funcionário
                 if Dependente.objects.filter(
                     funcionario=funcionario,
                     pessoa_fisica=pessoa_fisica,
@@ -64,19 +61,16 @@ class DependenteService:
                         'Esta pessoa já está cadastrada como dependente deste funcionário.'
                     )
             else:
-                # Cria nova pessoa física
                 pessoa_fisica = PessoaFisicaService.create(
                     created_by=created_by,
                     **pessoa_fisica_data
                 )
         else:
-            # Cria nova pessoa física sem CPF prévio
             pessoa_fisica = PessoaFisicaService.create(
                 created_by=created_by,
                 **pessoa_fisica_data
             )
 
-        # 2. Criação do Dependente
         dependente = Dependente(
             funcionario=funcionario,
             pessoa_fisica=pessoa_fisica,
@@ -84,8 +78,7 @@ class DependenteService:
             dependencia_irrf=dependencia_irrf,
             created_by=created_by
         )
-        dependente.save()  # save() já atualiza tem_dependente
-
+        dependente.save()
         return dependente
 
     @staticmethod

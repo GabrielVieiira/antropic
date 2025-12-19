@@ -5,13 +5,10 @@ from ..models import Cliente, Empresa
 from .pessoa_juridica import (
     PessoaJuridicaSerializer, 
     PessoaJuridicaCreateSerializer, 
-    PessoaJuridicaListSerializer
 )
 
 
 class ClienteListSerializer(serializers.ModelSerializer):
-    """Serializer leve para listagem."""
-    # Usa a versão leve da PJ
     razao_social = serializers.ReadOnlyField()
     cnpj = serializers.ReadOnlyField()
     

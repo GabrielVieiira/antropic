@@ -53,3 +53,11 @@ class DeficienciaService:
     @transaction.atomic
     def delete(deficiencia: Deficiencia, user=None) -> None:
         deficiencia.delete(user=user)
+
+
+    @staticmethod
+    def get_deficiencias_pessoa_fisica(pessoa_fisica) -> list:
+        return list(Deficiencia.objects.filter(
+            pessoa_fisica=pessoa_fisica,
+            deleted_at__isnull=True
+        ))

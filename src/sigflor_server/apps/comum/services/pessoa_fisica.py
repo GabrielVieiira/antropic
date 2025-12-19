@@ -32,7 +32,9 @@ class PessoaFisicaService:
         contatos_vinculados: List[dict] = [],
         documentos_vinculados: List[dict] = [],
         anexos_vinculados: List[dict] = [],
+        deficiencias: List[dict] = [],
     ) -> PessoaFisica:
+        
         pessoa = PessoaFisica(
             nome_completo=nome_completo,
             nome_mae=nome_mae,
@@ -52,19 +54,19 @@ class PessoaFisicaService:
 
         if enderecos_vinculados:
             for end_data in enderecos_vinculados:
-                EnderecoService.criar_endereco_pessoa_fisica(
+                EnderecoService.vincular_endereco_pessoa_fisica(
                     pessoa_fisica=pessoa, created_by=created_by, **end_data
                     )
         
         if contatos_vinculados:
             for ctt_data in contatos_vinculados:
-                ContatoService.add_contato_to_pessoa_fisica(
+                ContatoService.vincular_contato_pessoa_fisica(
                     pessoa_fisica=pessoa, created_by=created_by, **ctt_data
                     )
 
         if documentos_vinculados:
             for doc_data in documentos_vinculados:
-                DocumentoService.criar_documento_pessoa_fisica(
+                DocumentoService.vincular_documento_pessoa_fisica(
                     pessoa_fisica=pessoa, created_by=created_by, **doc_data
                     )
 
@@ -74,12 +76,18 @@ class PessoaFisicaService:
                     entidade=pessoa, created_by=created_by, **anx_data
                     )
 
+        if deficiencias:
+            for def_data in deficiencias:
+                DeficienciaService.create(
+                    pessoa_fisica=pessoa, created_by=created_by, **def_data
+                )
+
         return pessoa
 
     @staticmethod
     @transaction.atomic
     def update(pessoa: PessoaFisica, updated_by=None, **kwargs) -> PessoaFisica:
-        
+
         enderecos = kwargs.pop('enderecos', None)
         contatos = kwargs.pop('contatos', None)
         documentos = kwargs.pop('documentos', None)
@@ -140,7 +148,7 @@ class PessoaFisicaService:
                 dados_lista=deficiencias,
                 service_filho=DeficienciaService,
                 user=updated_by,
-                metodo_busca_existentes='get_anexos_por_entidade',
+                metodo_busca_existentes='get_deficiencias_pessoa_fisica',
                 metodo_criar='add_deficiencia_to_pessoa_fisica', #
                 campo_entidade_pai='pessoa_fisica'
             )

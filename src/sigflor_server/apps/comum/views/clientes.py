@@ -2,7 +2,6 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-
 from .base import BaseRBACViewSet
 from ..serializers import (
     ClienteSerializer, 
@@ -41,9 +40,16 @@ class ClienteViewSet(BaseRBACViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        pessoa_juridica = serializer.validated_data.pop('pessoa_juridica')
+        descricao = pessoa_juridica.pop('descricao', '')
+        ativo = pessoa_juridica.pop('ativo', True)
+        empresa_gestora = pessoa_juridica.pop('empresa_gestora')
         cliente = ClienteService.create(
-            validated_data=serializer.validated_data,
-            user=request.user
+            user=request.user,
+            pessoa_juridica_data = pessoa_juridica,
+            descricao = descricao,
+            ativo = ativo,
+            empresa_gestora = empresa_gestora
         )
         output_serializer = ClienteSerializer(cliente)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
@@ -54,6 +60,11 @@ class ClienteViewSet(BaseRBACViewSet):
                 updated_by=self.request.user,
                 **serializer.validated_data
             )
+
+    def retrieve(self, request, pk=None):
+        cliente = selectors.cliente_detail(pk=pk)
+        serializer = self.get_serializer(cliente)
+        return Response(serializer.data)
 
     def perform_destroy(self, instance):
             ClienteService.delete(

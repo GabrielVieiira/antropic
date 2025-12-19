@@ -10,11 +10,13 @@ class EmpresaService:
     @staticmethod
     @transaction.atomic
     def create(
-        *,
-        user:Usuario,
-        validated_data: dict,
+        *, 
+        user: Usuario, 
+        pessoa_juridica_data: dict,
+        descricao: str = '',
+        ativa: bool = True
     ) -> Empresa:
-        pessoa_juridica_data = validated_data.pop('pessoa_juridica')
+        
         cnpj = pessoa_juridica_data.pop('cnpj')
         
         pessoa_juridica, _ = PessoaJuridicaService.get_or_create_by_cnpj(
@@ -29,8 +31,8 @@ class EmpresaService:
 
         empresa = Empresa(
             pessoa_juridica=pessoa_juridica,
-            descricao=validated_data.get('descricao'),
-            ativa=validated_data.get('ativa'),
+            descricao=descricao,
+            ativa=ativa,
             created_by=user,
         )
         empresa.save()

@@ -6,9 +6,17 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 from apps.autenticacao.models import Usuario
-from apps.comum.services import PessoaFisicaService
+from apps.comum.models import Empresa, Projeto
+from apps.comum.services import PessoaFisicaService, DocumentoService
 from .dependentes import DependenteService
-from ..models import Funcionario, Alocacao, EquipeFuncionario, Equipe, StatusFuncionario
+from ..models import (
+    Funcionario,
+    Alocacao,
+    EquipeFuncionario,
+    Equipe,
+    StatusFuncionario,
+    Cargo
+)
 
 
 class FuncionarioService:
@@ -19,7 +27,13 @@ class FuncionarioService:
         *,
         user: Usuario,
         pessoa_fisica_data: dict,
-        funcionario_data: dict,
+        empresa: Empresa,
+        cargo: Cargo,
+        tipo_contrato: str,
+        data_admissao,
+        salario_nominal: Optional[Decimal] = None,
+        projeto: Optional[Projeto] = None,
+        **dados_cadastrais 
     ) -> Funcionario:
         
         cpf = pessoa_fisica_data.pop('cpf')
@@ -29,36 +43,37 @@ class FuncionarioService:
             **pessoa_fisica_data
         )
 
-        cargo = funcionario_data.get('cargo')
-        salario_nominal = funcionario_data.get('salario_nominal')
-
-        if cargo:
-            if salario_nominal is None:
-                if cargo.salario_base:
-                    funcionario_data['salario_nominal'] = cargo.salario_base
-                else:
-                    raise ValidationError(
-                        'Salário nominal é obrigatório quando o cargo não possui salário base definido.'
-                    )
+        salario_final = salario_nominal
+        if salario_final is None:
+            if cargo.salario_base:
+                salario_final = cargo.salario_base
             else:
-                if cargo.salario_base and Decimal(str(salario_nominal)) < cargo.salario_base:
-                    raise ValidationError(
-                        f'O salário nominal ({salario_nominal}) não pode ser inferior '
-                        f'ao salário base do cargo ({cargo.salario_base}).'
-                    )
+                raise ValidationError(
+                    'Salário nominal é obrigatório quando o cargo não possui salário base definido.'
+                )
+        elif cargo.salario_base and salario_final < cargo.salario_base:
+            raise ValidationError(
+                'Salário nominal não pode ser inferior ao salário base do cargo.'
+            )
         
         funcionario = Funcionario(
             pessoa_fisica=pessoa_fisica,
+            empresa=empresa,
+            cargo=cargo,
+            tipo_contrato=tipo_contrato,
+            data_admissao=data_admissao,
+            salario_nominal=salario_final,
+            projeto=projeto,
             created_by=user,
-            **funcionario_data
+            **dados_cadastrais
         )
         funcionario.save()
 
-        if projeto := funcionario_data.get('projeto'):
+        if projeto:
             Alocacao.objects.create(
                 funcionario=funcionario,
                 projeto=projeto,
-                data_inicio=funcionario_data.get('data_admissao'),
+                data_inicio=data_admissao,
                 created_by=user
             )
 

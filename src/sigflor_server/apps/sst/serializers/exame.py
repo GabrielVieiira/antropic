@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.comum.models import Exame
+from ..models import Exame
 
 
 class ExameSerializer(serializers.ModelSerializer):

@@ -4,11 +4,13 @@ from rest_framework.exceptions import PermissionDenied
 
 from ..models import Filial
 from ..models.enums import StatusFilial
+from .enderecos import EnderecoService
+from .contatos import ContatoService
+from .utils import ServiceUtils
 from apps.autenticacao.models.usuarios import Usuario
 
 
 class FilialService:
-    """Service layer para operações com Filial."""
 
     @staticmethod
     def _check_filial_ownership_access(user: Usuario, filial: Filial):
@@ -26,24 +28,21 @@ class FilialService:
     def create(
         *,
         user: Usuario,
-        validated_data: dict,
+        enderecos : list,
+        contatos : list,
+        nome: str,
+        codigo_interno: str,
+        status: str = StatusFilial.ATIVA,
+        descricao: str = '',
+        empresa=None
     ) -> Filial:
-        """Cria uma nova Filial, verificando permissão genérica para criação.
-        A verificação de permissão genérica será tratada na camada de View.
-        """
-        # Nenhuma verificação de filial aqui para criação, pois o usuário pode estar criando uma nova filial.
-        # A permissão para criar (comum_filial_editar) será verificada na View.
-        enderecos = validated_data.pop('enderecos')
-        contatos = validated_data.pop('contatos')
-        
-        print("Creating Filial with data:", validated_data)
 
         filial = Filial(
-            nome=validated_data.get('nome'),
-            codigo_interno=validated_data.get('codigo_interno'),
-            empresa=validated_data.get('empresa'),
-            status=validated_data.get('status'),
-            descricao=validated_data.get('descricao'),
+            nome=nome,
+            codigo_interno=codigo_interno,
+            empresa=empresa,
+            status=status,
+            descricao=descricao,
             created_by=user,
         )
         filial.save()
@@ -51,7 +50,7 @@ class FilialService:
         if enderecos:
             from .enderecos import EnderecoService
             for end_data in enderecos:
-                EnderecoService.criar_endereco_filial(
+                EnderecoService.vincular_endereco_filial(
                     filial=filial,
                     **end_data
                 )
@@ -59,7 +58,7 @@ class FilialService:
         if contatos:
             from .contatos import ContatoService
             for contato_data in contatos:
-                ContatoService.criar_contato_filial(
+                ContatoService.vincular_contato_filial(
                     filial=filial,
                     **contato_data
                 )
@@ -68,50 +67,76 @@ class FilialService:
 
     @staticmethod
     @transaction.atomic
-    def update(filial: Filial, user: Usuario, updated_by=None, **kwargs) -> Filial:
-        """Atualiza uma Filial existente, verificando permissão regional."""
+    def update(filial: Filial, user: Usuario, **kwargs) -> Filial:
+        """
+        Atualiza uma Filial e sincroniza suas listas aninhadas.
+        """
+
         FilialService._check_filial_ownership_access(user, filial)
+
+        enderecos = kwargs.pop('enderecos', None)
+        contatos = kwargs.pop('contatos', None)
 
         for attr, value in kwargs.items():
             if hasattr(filial, attr):
                 setattr(filial, attr, value)
-        filial.updated_by = updated_by
+        
+        filial.updated_by = user
         filial.save()
+
+        if enderecos is not None:
+            ServiceUtils.sincronizar_lista_aninhada(
+                entidade_pai=filial,
+                dados_lista=enderecos,
+                service_filho=EnderecoService,
+                user=user,
+                metodo_busca_existentes='get_enderecos_filial', #
+                metodo_criar='criar_endereco_filial',           #
+                campo_entidade_pai='filial'
+            )
+
+        if contatos is not None:
+            ServiceUtils.sincronizar_lista_aninhada(
+                entidade_pai=filial,
+                dados_lista=contatos,
+                service_filho=ContatoService,
+                user=user,
+                metodo_busca_existentes='get_contatos_filial', # <--- ATENÇÃO AQUI
+                metodo_criar='criar_contato_filial',           #
+                campo_entidade_pai='filial'
+            )
+
         return filial
 
     @staticmethod
     @transaction.atomic
     def delete(filial: Filial, user: Usuario) -> None:
-        """Soft delete de uma Filial, verificando permissão regional."""
         FilialService._check_filial_ownership_access(user, filial)
         filial.delete(user=user)
 
     @staticmethod
     @transaction.atomic
-    def ativar(filial: Filial, user: Usuario, updated_by=None) -> Filial:
-        """Ativa uma filial, verificando permissão regional."""
+    def ativar(filial: Filial, user: Usuario) -> Filial:
         FilialService._check_filial_ownership_access(user, filial)
         filial.status = StatusFilial.ATIVA
-        filial.updated_by = updated_by
+        filial.updated_by = user
         filial.save()
         return filial
 
     @staticmethod
     @transaction.atomic
-    def desativar(filial: Filial, user: Usuario, updated_by=None) -> Filial:
-        """Desativa uma filial, verificando permissão regional."""
+    def desativar(filial: Filial, user: Usuario) -> Filial:
         FilialService._check_filial_ownership_access(user, filial)
         filial.status = StatusFilial.INATIVA
-        filial.updated_by = updated_by
+        filial.updated_by = user
         filial.save()
         return filial
 
     @staticmethod
     @transaction.atomic
-    def suspender(filial: Filial, user: Usuario, updated_by=None) -> Filial:
-        """Suspende uma filial, verificando permissão regional."""
+    def suspender(filial: Filial, user: Usuario) -> Filial:
         FilialService._check_filial_ownership_access(user, filial)
         filial.status = StatusFilial.SUSPENSA
-        filial.updated_by = updated_by
+        filial.updated_by = user
         filial.save()
         return filial

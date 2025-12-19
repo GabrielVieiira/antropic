@@ -13,7 +13,6 @@ from .documentos import Documento, PessoaFisicaDocumento, PessoaJuridicaDocument
 from .anexos import Anexo
 from .deficiencias import Deficiencia
 from .projeto import Projeto, StatusProjeto
-from .exame import Exame
 
 __all__ = [
     # Base
@@ -30,7 +29,6 @@ __all__ = [
     'Filial',
     'Projeto',
     'StatusProjeto',
-    'Exame',
     # Entidades genericas
     'Endereco',
     'TipoEndereco',
