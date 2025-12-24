@@ -9,9 +9,9 @@ from apps.autenticacao.models import Usuario
 from apps.comum.models import Empresa, Projeto
 from apps.comum.services import PessoaFisicaService, DocumentoService
 from .dependentes import DependenteService
+from .alocacoes import AlocacaoService
 from ..models import (
     Funcionario,
-    Alocacao,
     EquipeFuncionario,
     Equipe,
     StatusFuncionario,
@@ -70,7 +70,7 @@ class FuncionarioService:
         funcionario.save()
 
         if projeto:
-            Alocacao.objects.create(
+            AlocacaoService.alocar_funcionario(
                 funcionario=funcionario,
                 projeto=projeto,
                 data_inicio=data_admissao,
@@ -121,10 +121,47 @@ class FuncionarioService:
     @staticmethod
     @transaction.atomic
     def update(funcionario: Funcionario, updated_by=None, **kwargs) -> Funcionario:
+        """
+        Atualiza funcionário, seus dados pessoais e gerencia a troca de Projeto (Alocação).
+        """
         
+        # 1. Extração de Dados Aninhados (Pessoa Física)
+        # Removemos do kwargs para não atrapalhar o setattr do funcionário
+        pessoa_fisica_data = kwargs.pop('pessoa_fisica', None)
+
+        # 2. Gestão de Alocação (Projeto)
+        if 'projeto' in kwargs:
+            novo_projeto = kwargs.pop('projeto')
+            novo_projeto_id = getattr(novo_projeto, 'id', novo_projeto)
+            
+            if novo_projeto_id != funcionario.projeto_id:
+                
+                data_hoje = timezone.now().date()
+
+                if novo_projeto_id:
+                    projeto_instance = novo_projeto
+                    if not isinstance(projeto_instance, Projeto):
+                        projeto_instance = Projeto.objects.get(id=novo_projeto_id)
+                    
+                    AlocacaoService.alocar_funcionario(
+                        funcionario=funcionario,
+                        projeto=projeto_instance,
+                        data_inicio=data_hoje,
+                        created_by=updated_by
+                    )
+                else:
+                    alocacao_ativa = AlocacaoService.get_alocacao_ativa(funcionario)
+                    if alocacao_ativa:
+                        AlocacaoService.encerrar_alocacao(
+                            alocacao=alocacao_ativa,
+                            data_fim=data_hoje,
+                            updated_by=updated_by
+                        )
+                    funcionario.projeto = None
+
+        # 3. Validações de Negócio (Cargo/Salário)
         novo_cargo = kwargs.get('cargo')
         novo_salario = kwargs.get('salario_nominal')
-
         cargo_ref = novo_cargo if novo_cargo else funcionario.cargo
 
         if novo_salario is not None and cargo_ref and cargo_ref.salario_base:
@@ -134,12 +171,23 @@ class FuncionarioService:
                     f'ao salário base do cargo ({cargo_ref.salario_base}).'
                 )
 
+        # 4. Atualização Genérica (Campos do Funcionario)
         for attr, value in kwargs.items():
             if hasattr(funcionario, attr):
                 setattr(funcionario, attr, value)
 
         funcionario.updated_by = updated_by
         funcionario.save()
+
+        # 5. Atualização Delegada (Pessoa Física)
+        # Importante: Isso deve vir APÓS o save do funcionário ou ser independente
+        if pessoa_fisica_data:
+            PessoaFisicaService.update(
+                pessoa=funcionario.pessoa_fisica,
+                updated_by=updated_by,
+                **pessoa_fisica_data # Repassa endereços, contatos, etc.
+            )
+        
         return funcionario
 
     @staticmethod

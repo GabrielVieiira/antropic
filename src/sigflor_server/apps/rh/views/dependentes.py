@@ -1,125 +1,64 @@
 # -*- coding: utf-8 -*-
-from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+from apps.comum.views.base import BaseRBACViewSet
 from ..models import Dependente
-from ..serializers import (
-    DependenteSerializer,
-    FuncionarioListSerializer
-)
+from ..serializers import DependenteSerializer, DependenteUpdateSerializer
 from ..services import DependenteService
 from .. import selectors
 
-
-class DependenteViewSet(viewsets.ModelViewSet):
-    """ViewSet para Dependente."""
+class DependenteViewSet(BaseRBACViewSet):
+    
+    permissao_leitura = 'rh_dependentes_ler'
+    permissao_escrita = 'rh_dependentes_escrever'
+    permissoes_acoes = {
+        'incluir_ir': 'rh_dependentes_escrever',
+        'excluir_ir': 'rh_dependentes_escrever',
+        'incluir_plano_saude': 'rh_dependentes_escrever',
+        'excluir_plano_saude': 'rh_dependentes_escrever',
+        'estatisticas': 'rh_dependentes_ler',
+        'funcionarios_com_dependentes': 'rh_dependentes_ler',
+    }
 
     queryset = Dependente.objects.filter(deleted_at__isnull=True)
-    serializer_class = DependenteSerializer
 
-    def retrieve(self, request, pk=None):
-        try:
-            dependente = selectors.dependente_detail(user=request.user, pk=pk)
-            serializer = self.get_serializer(dependente)
-            return Response(serializer.data)
-        except Dependente.DoesNotExist:
-            return Response(
-                {'detail': 'Dependente nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return DependenteUpdateSerializer
+        return DependenteSerializer
 
-    def destroy(self, request, pk=None):
-        try:
-            dependente = Dependente.objects.get(pk=pk, deleted_at__isnull=True)
-            DependenteService.delete(
-                dependente,
-                user=request.user if request.user.is_authenticated else None
-            )
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Dependente.DoesNotExist:
-            return Response(
-                {'detail': 'Dependente nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def perform_update(self, serializer):
+        pf_data = serializer.validated_data.pop('pessoa_fisica', None)
+        
+        DependenteService.update(
+            dependente=serializer.instance,
+            updated_by=self.request.user,
+            pessoa_fisica_data=pf_data,
+            **serializer.validated_data
+        )
+
+    def perform_destroy(self, instance):
+        DependenteService.delete(instance, user=self.request.user)
 
     @action(detail=True, methods=['post'])
     def incluir_ir(self, request, pk=None):
-        """Inclui dependente na declaracao de IR."""
-        try:
-            dependente = Dependente.objects.get(pk=pk, deleted_at__isnull=True)
-            DependenteService.incluir_ir(
-                dependente,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = DependenteSerializer(dependente)
-            return Response(serializer.data)
-        except Dependente.DoesNotExist:
-            return Response(
-                {'detail': 'Dependente nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        dependente = self.get_object()
+        DependenteService.atualizar_dependencia_irrf(
+            dependente, dependencia_irrf=True, updated_by=request.user
+        )
+        return Response(self.get_serializer(dependente).data)
 
     @action(detail=True, methods=['post'])
     def excluir_ir(self, request, pk=None):
-        """Exclui dependente da declaracao de IR."""
-        try:
-            dependente = Dependente.objects.get(pk=pk, deleted_at__isnull=True)
-            DependenteService.excluir_ir(
-                dependente,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = DependenteSerializer(dependente)
-            return Response(serializer.data)
-        except Dependente.DoesNotExist:
-            return Response(
-                {'detail': 'Dependente nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-    @action(detail=True, methods=['post'])
-    def incluir_plano_saude(self, request, pk=None):
-        """Inclui dependente no plano de saude."""
-        try:
-            dependente = Dependente.objects.get(pk=pk, deleted_at__isnull=True)
-            DependenteService.incluir_plano_saude(
-                dependente,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = DependenteSerializer(dependente)
-            return Response(serializer.data)
-        except Dependente.DoesNotExist:
-            return Response(
-                {'detail': 'Dependente nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-    @action(detail=True, methods=['post'])
-    def excluir_plano_saude(self, request, pk=None):
-        """Exclui dependente do plano de saude."""
-        try:
-            dependente = Dependente.objects.get(pk=pk, deleted_at__isnull=True)
-            DependenteService.excluir_plano_saude(
-                dependente,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = DependenteSerializer(dependente)
-            return Response(serializer.data)
-        except Dependente.DoesNotExist:
-            return Response(
-                {'detail': 'Dependente nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        dependente = self.get_object()
+        DependenteService.atualizar_dependencia_irrf(
+            dependente, dependencia_irrf=False, updated_by=request.user
+        )
+        return Response(self.get_serializer(dependente).data)
 
     @action(detail=False, methods=['get'])
     def estatisticas(self, request):
-        """Retorna estatisticas de dependentes."""
         stats = selectors.estatisticas_dependentes(user=request.user)
         return Response(stats)
 
-    @action(detail=False, methods=['get'])
-    def funcionarios_com_dependentes(self, request):
-        """Lista funcionarios que possuem dependentes."""
-        funcionarios = selectors.funcionarios_com_dependentes(user=request.user)
-        serializer = FuncionarioListSerializer(funcionarios, many=True)
-        return Response(serializer.data)

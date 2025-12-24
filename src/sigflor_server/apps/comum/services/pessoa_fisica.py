@@ -34,7 +34,7 @@ class PessoaFisicaService:
         anexos_vinculados: List[dict] = [],
         deficiencias: List[dict] = [],
     ) -> PessoaFisica:
-        
+
         pessoa = PessoaFisica(
             nome_completo=nome_completo,
             nome_mae=nome_mae,
@@ -57,7 +57,7 @@ class PessoaFisicaService:
                 EnderecoService.vincular_endereco_pessoa_fisica(
                     pessoa_fisica=pessoa, created_by=created_by, **end_data
                     )
-        
+
         if contatos_vinculados:
             for ctt_data in contatos_vinculados:
                 ContatoService.vincular_contato_pessoa_fisica(
@@ -107,7 +107,7 @@ class PessoaFisicaService:
                 service_filho=EnderecoService,
                 user=updated_by,
                 metodo_busca_existentes='get_enderecos_pessoa_fisica',
-                metodo_criar='criar_endereco_pessoa_fisica', #
+                metodo_criar='vincular_endereco_pessoa_fisica', #
                 campo_entidade_pai='pessoa_fisica'
             )
 
@@ -118,7 +118,7 @@ class PessoaFisicaService:
                 service_filho=ContatoService,
                 user=updated_by,
                 metodo_busca_existentes='get_contatos_pessoa_fisica',
-                metodo_criar='add_contato_to_pessoa_fisica', #
+                metodo_criar='vincular_contato_pessoa_fisica',
                 campo_entidade_pai='pessoa_fisica'
             )
 
@@ -129,7 +129,7 @@ class PessoaFisicaService:
                 service_filho=DocumentoService,
                 user=updated_by,
                 metodo_busca_existentes='get_documentos_pessoa_fisica',
-                metodo_criar='criar_documento_pessoa_fisica', #
+                metodo_criar='vincular_documento_pessoa_fisica', #
                 campo_entidade_pai='pessoa_fisica'
             )
 
@@ -149,7 +149,7 @@ class PessoaFisicaService:
                 service_filho=DeficienciaService,
                 user=updated_by,
                 metodo_busca_existentes='get_deficiencias_pessoa_fisica',
-                metodo_criar='add_deficiencia_to_pessoa_fisica', #
+                metodo_criar='create',
                 campo_entidade_pai='pessoa_fisica'
             )
 

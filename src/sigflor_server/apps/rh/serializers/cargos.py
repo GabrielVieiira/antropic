@@ -7,7 +7,6 @@ from .cargo_documento import CargoDocumentoNestedSerializer
 
 
 class CargoListSerializer(serializers.ModelSerializer):
-    """Serializer simplificado para listagem de Cargos."""
 
     funcionarios_count = serializers.ReadOnlyField()
     tem_risco = serializers.ReadOnlyField()
@@ -26,7 +25,6 @@ class CargoListSerializer(serializers.ModelSerializer):
         ]
 
 class CargoSerializer(serializers.ModelSerializer):
-    """Serializer completo para detalhes do Cargo."""
 
     funcionarios_count = serializers.ReadOnlyField()
     tem_risco = serializers.ReadOnlyField()
@@ -40,17 +38,14 @@ class CargoSerializer(serializers.ModelSerializer):
             'cbo',
             'descricao',
             'nivel',
-            # Riscos ocupacionais
             'risco_fisico',
             'risco_biologico',
             'risco_quimico',
             'risco_ergonomico',
             'risco_acidente',
             'tem_risco',
-            # Status
             'ativo',
             'funcionarios_count',
-            # Auditoria
             'created_at',
             'updated_at',
         ]

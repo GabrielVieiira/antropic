@@ -1,6 +1,7 @@
 from django.db.models import QuerySet
 from rest_framework.exceptions import PermissionDenied
 
+from ..models.funcionarios import Funcionario
 from ..models import Alocacao
 from apps.autenticacao.models.usuarios import Usuario
 
@@ -57,15 +58,13 @@ def alocacao_detail(*, user: Usuario, pk) -> Alocacao:
     return alocacao
 
 
-def alocacoes_por_funcionario(*, user: Usuario, funcionario_id: str) -> QuerySet:
-    """Lista histórico de alocações de um funcionário."""
+def alocacoes_por_funcionario(*, user: Usuario, funcionario: Funcionario) -> QuerySet:
     qs = Alocacao.objects.filter(
-        funcionario_id=funcionario_id,
+        funcionario=funcionario,
         deleted_at__isnull=True
     ).select_related('projeto', 'projeto__filial')
 
     if not user.is_superuser:
-        # Mostra apenas alocações que o usuário tem permissão de ver
         qs = qs.filter(projeto__filial__in=user.allowed_filiais.all()).distinct()
 
     return qs.order_by('-data_inicio')

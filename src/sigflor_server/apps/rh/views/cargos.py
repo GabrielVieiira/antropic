@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from rest_framework import viewsets, status, serializers
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.core.exceptions import ValidationError as DjangoValidationError
 
+from apps.comum.views.base import BaseRBACViewSet
 from ..models import Cargo
 from ..serializers import (
     CargoSerializer,
@@ -15,8 +15,19 @@ from ..services import CargoService
 from .. import selectors
 
 
-class CargoViewSet(viewsets.ModelViewSet):
+class CargoViewSet(BaseRBACViewSet):
     
+    permissao_leitura = 'rh_cargos_ler'
+    permissao_escrita = 'rh_cargos_escrever'
+    permissoes_acoes =  {
+        'ativar': 'rh_cargos_escrever',
+        'desativar': 'rh_cargos_escrever',
+        'funcionarios': 'rh_cargos_ler',
+        'ativos': 'rh_cargos_ler',
+        'estatisticas': 'rh_cargos_ler',
+    }
+
+    queryset = Cargo.objects.filter(deleted_at__isnull=True)
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -32,7 +43,6 @@ class CargoViewSet(viewsets.ModelViewSet):
         nivel = self.request.query_params.get('nivel')
         com_risco = self.request.query_params.get('com_risco')
 
-        # Converte string para boolean
         if ativo is not None:
             ativo = ativo.lower() == 'true'
         if com_risco is not None:
@@ -50,90 +60,51 @@ class CargoViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            cargo = CargoService.create(
-                **serializer.validated_data,
-                user=request.user
-            )
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else list(e.messages))
+        documentos_exigidos = serializer.validated_data.pop('documentos_exigidos', [])
+
+        cargo = CargoService.create(
+            user=request.user,
+            documentos_exigidos=documentos_exigidos,
+            **serializer.validated_data
+        )
         output_serializer = CargoSerializer(cargo)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
-    def retrieve(self, request, pk=None):
-        try:
-            cargo = selectors.cargo_detail(user=request.user, pk=pk)
-            serializer = self.get_serializer(cargo)
-            return Response(serializer.data)
-        except Cargo.DoesNotExist:
-            return Response(
-                {'detail': 'Cargo nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def perform_update(self, serializer):
+        CargoService.update(
+            user = self.request.user,
+            cargo=serializer.instance,
+            **serializer.validated_data
+        )
 
-    def destroy(self, request, pk=None):
-        try:
-            cargo = Cargo.objects.get(pk=pk, deleted_at__isnull=True)
-            CargoService.delete(
-                cargo,
-                user=request.user if request.user.is_authenticated else None
-            )
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Cargo.DoesNotExist:
-            return Response(
-                {'detail': 'Cargo nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except ValueError as e:
-            return Response(
-                {'detail': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    def retrieve(self, request, pk=None):
+        cargo = selectors.cargo_detail(user=request.user, pk=pk)
+        serializer = self.get_serializer(cargo)
+        return Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        CargoService.delete(instance, user=self.request.user)
 
     @action(detail=True, methods=['post'])
     def ativar(self, request, pk=None):
-        try:
-            cargo = Cargo.objects.get(pk=pk, deleted_at__isnull=True)
-            CargoService.ativar(
-                cargo,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = CargoSerializer(cargo)
-            return Response(serializer.data)
-        except Cargo.DoesNotExist:
-            return Response(
-                {'detail': 'Cargo nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        cargo = self.get_object()
+        CargoService.ativar(cargo, updated_by=request.user)
+        serializer = self.get_serializer(cargo)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def desativar(self, request, pk=None):
-        try:
-            cargo = Cargo.objects.get(pk=pk, deleted_at__isnull=True)
-            CargoService.desativar(
-                cargo,
-                updated_by=request.user if request.user.is_authenticated else None
-            )
-            serializer = CargoSerializer(cargo)
-            return Response(serializer.data)
-        except Cargo.DoesNotExist:
-            return Response(
-                {'detail': 'Cargo nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        cargo = self.get_object()
+        CargoService.desativar(cargo, updated_by=request.user)
+        serializer = self.get_serializer(cargo)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['get'])
     def funcionarios(self, request, pk=None):
-        try:
-            Cargo.objects.get(pk=pk, deleted_at__isnull=True)
-            funcionarios = selectors.funcionarios_por_cargo(user=request.user, cargo_id=pk)
-            serializer = FuncionarioListSerializer(funcionarios, many=True)
-            return Response(serializer.data)
-        except Cargo.DoesNotExist:
-            return Response(
-                {'detail': 'Cargo nao encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        self.get_object() 
+        funcionarios = selectors.funcionarios_por_cargo(user=request.user, cargo_id=pk)
+        serializer = FuncionarioListSerializer(funcionarios, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def ativos(self, request):

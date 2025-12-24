@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import date
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 from ..models import Alocacao, Funcionario
 
@@ -19,7 +18,7 @@ class AlocacaoService:
         projeto,
         data_inicio: date,
         data_fim: Optional[date] = None,
-        observacoes: Optional[str] = None,
+        observacoes: Optional[str] = '',
         created_by=None,
     ) -> Alocacao:
         """

@@ -213,7 +213,6 @@ class Funcionario(SoftDeleteModel):
         return f'{base}{digito}'
 
     def _calcular_digito_controle(self, base: str) -> int:
-        """Calcula o dígito de controle da matrícula."""
         soma = sum(int(d) * (i + 1) for i, d in enumerate(base))
         return soma % 10
 

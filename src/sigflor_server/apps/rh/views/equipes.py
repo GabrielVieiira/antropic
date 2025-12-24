@@ -20,10 +20,19 @@ from .. import selectors
 
 
 class EquipeViewSet(viewsets.ModelViewSet):
-    """ViewSet para Equipe."""
+
+    permissao_leitura = 'rh_equipes_ler'
+    permissao_escrita = 'rh_equipes_escrever'
+    permissoes_acoes = {
+        'incluir_ir': 'rh_equipes_escrever',
+        'excluir_ir': 'rh_equipes_escrever',
+        'incluir_plano_saude': 'rh_equipes_escrever',
+        'excluir_plano_saude': 'rh_equipes_escrever',
+        'estatisticas': 'rh_equipes_ler',
+        'funcionarios_com_equipes': 'rh_equipes_ler',
+    }
 
     queryset = Equipe.objects.filter(deleted_at__isnull=True)
-    serializer_class = EquipeSerializer
 
     def get_serializer_class(self):
         if self.action == 'list':

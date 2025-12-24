@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from rest_framework import viewsets, status, serializers
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.parsers import JSONParser, FormParser
 
 
@@ -36,7 +35,8 @@ class FuncionarioViewSet(viewsets.ModelViewSet):
         cargo_id = self.request.query_params.get('cargo_id')
         projeto_id = self.request.query_params.get('projeto_id')
         apenas_ativos = self.request.query_params.get('apenas_ativos', '').lower() == 'true'
-
+        tem_dependente = self.request.query_params.get('tem_dependente').lower() == 'true'
+        
         return selectors.funcionario_list(
             user=self.request.user,
             busca=busca,
@@ -45,7 +45,8 @@ class FuncionarioViewSet(viewsets.ModelViewSet):
             empresa_id=empresa_id,
             cargo_id=cargo_id,
             projeto_id=projeto_id,
-            apenas_ativos=apenas_ativos
+            apenas_ativos=apenas_ativos,
+            tem_dependente=tem_dependente
         )
 
     def create(self, request, *args, **kwargs):
@@ -264,4 +265,15 @@ class FuncionarioViewSet(viewsets.ModelViewSet):
     def afastados(self, request):
         funcionarios = selectors.funcionarios_afastados(user=request.user)
         serializer = FuncionarioListSerializer(funcionarios, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def historico_alocacoes(self, request, pk=None):
+        funcionario = self.get_object()
+        historico = selectors.get_historico_alocacoes_funcionario(
+            user=request.user,
+            funcionario=funcionario
+        )
+        from ..serializers import AlocacaoListSerializer 
+        serializer = AlocacaoListSerializer(historico, many=True)
         return Response(serializer.data)

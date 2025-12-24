@@ -100,7 +100,7 @@ class PessoaJuridicaService:
                 service_filho=EnderecoService,
                 user=updated_by,
                 metodo_busca_existentes='get_enderecos_pessoa_juridica',
-                metodo_criar='criar_endereco_pessoa_juridica',
+                metodo_criar='vincular_endereco_pessoa_juridica',
                 campo_entidade_pai='pessoa_juridica'
             )
 
@@ -111,7 +111,7 @@ class PessoaJuridicaService:
                 service_filho=ContatoService,
                 user=updated_by,
                 metodo_busca_existentes='get_contatos_pessoa_juridica',
-                metodo_criar='criar_contato_para_pessoa_juridica',
+                metodo_criar='vincular_contato_pessoa_juridica',
                 campo_entidade_pai='pessoa_juridica'
             )
 
@@ -122,7 +122,7 @@ class PessoaJuridicaService:
                 service_filho=DocumentoService,
                 user=updated_by,
                 metodo_busca_existentes='get_documentos_pessoa_juridica',
-                metodo_criar='add_documento_to_pessoa_juridica',
+                metodo_criar='vincular_documento_pessoa_juridica',
                 campo_entidade_pai='pessoa_juridica'
             )
 

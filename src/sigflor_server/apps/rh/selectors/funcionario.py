@@ -18,7 +18,8 @@ def funcionario_list(
     empresa_id: str = None,
     cargo_id: str = None,
     projeto_id: str = None,
-    apenas_ativos: bool = False
+    apenas_ativos: bool = False,
+    tem_dependente: bool = False
 ) -> QuerySet:
 
     qs = Funcionario.objects.filter(
@@ -48,6 +49,9 @@ def funcionario_list(
 
     if status:
         qs = qs.filter(status=status)
+
+    if tem_dependente:
+        qs = qs.filter(tem_dependente=tem_dependente)
 
     if tipo_contrato:
         qs = qs.filter(tipo_contrato=tipo_contrato)
@@ -255,3 +259,11 @@ def estatisticas_rh(*, user: Usuario) -> dict:
         'por_tipo_contrato': list(por_tipo_contrato),
         'por_cargo': list(por_cargo),
     }
+
+
+def get_historico_alocacoes_funcionario(*, user:Usuario, funcionario: Funcionario) -> list:
+    from .alocacao import alocacoes_por_funcionario
+    return list(alocacoes_por_funcionario(
+        user=user, 
+        funcionario=funcionario
+        ))
