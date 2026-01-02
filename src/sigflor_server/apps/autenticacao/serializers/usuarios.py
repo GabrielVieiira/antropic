@@ -6,6 +6,8 @@ from apps.comum.models import Filial
 class UsuarioListSerializer(serializers.ModelSerializer):
     nome = serializers.CharField(source='first_name', read_only=True)
     sobrenome = serializers.CharField(source='last_name', read_only=True)
+    ativo = serializers.BooleanField(source='is_active', read_only=True)
+    ultimo_login = serializers.CharField(source='last_login', read_only=True)
     
     lista_papeis = serializers.SlugRelatedField(
         source='papeis',
@@ -40,12 +42,13 @@ class UsuarioListSerializer(serializers.ModelSerializer):
             'lista_papeis', 
             'lista_filiais', 
             'lista_permissoes_diretas',
-            'last_login'
+            'ultimo_login'
         ]
 
 class UsuarioCreateSerializer(serializers.ModelSerializer):
     nome = serializers.CharField(source='first_name', required=True)
     sobrenome = serializers.CharField(source='last_name', required=False)
+    ativo = serializers.BooleanField(source='is_active', read_only=True)
     
     senha = serializers.CharField(
         source='password', 

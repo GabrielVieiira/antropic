@@ -20,17 +20,40 @@ class UsuarioManager(BaseUserManager):
     def create_superuser(self, username, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('ativo', True)
+        extra_fields.setdefault('is_active', True)
         return self.create_user(username, email, password, **extra_fields)
 
 class Usuario(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
-    ativo = models.BooleanField(default=True, help_text='Controla acesso ao sistema')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
+    created_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True, 
+        blank=True,
+        related_name='usuarios_criados'
+    )
+
+    updated_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True, 
+        blank=True,
+        related_name='usuarios_atualizados'
+    )
+
+    deleted_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True, 
+        blank=True,
+        related_name='usuarios_deletados'
+    )
 
     papeis = models.ManyToManyField(
         'autenticacao.Papel',
@@ -72,5 +95,15 @@ class Usuario(AbstractUser):
 
     def delete(self, user=None):
         self.deleted_at = timezone.now()
-        self.ativo = False
-        self.save(update_fields=['deleted_at', 'ativo', 'updated_at'])
+        self.is_active = False
+        if user is not None:
+            self.deleted_by = user
+        self.save(update_fields=['deleted_at', 'is_active', 'deleted_by', 'updated_at'])
+
+    def restore(self, user=None):
+        self.deleted_at = None
+        self.is_active = True
+        if user is not None:
+            self.updated_by = user
+            
+        self.save(update_fields=['deleted_at', 'is_active', 'updated_by', 'updated_at'])

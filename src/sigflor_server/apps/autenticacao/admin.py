@@ -1,73 +1,67 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import (
-    Usuario,
-    Permissao,
-    Papel,
-)
+from .models import Usuario, Papel
 
 # ============ Usuario ============ #
 
 @admin.register(Usuario)
 class UsuarioAdmin(BaseUserAdmin):
-    # Exibe campos essenciais na listagem, incluindo status e auditoria
-    list_display = ['username', 'email', 'first_name', 'last_name', 'ativo', 'is_staff', 'created_at']
-    list_filter = ['ativo', 'is_staff', 'is_superuser', 'created_at']
+    # CORREÇÃO 1: Trocamos 'ativo' por 'is_active'
+    list_display = ['username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'created_at']
+    list_filter = ['is_active', 'is_staff', 'is_superuser', 'created_at']
+    
     search_fields = ['username', 'email', 'first_name', 'last_name']
     
-    # Campos de auditoria protegidos contra edição manual
-    readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at', 'last_login', 'date_joined']
+    # Adicionei os campos novos de auditoria (created_by, etc) como readonly
+    readonly_fields = [
+        'id', 'created_at', 'updated_at', 'deleted_at', 
+        'created_by', 'updated_by', 'deleted_by', 
+        'last_login', 'date_joined'
+    ]
+    
     ordering = ['username']
     
-    # Interface melhorada para selecionar muitos itens (N:N)
-    filter_horizontal = ['papeis', 'permissoes_diretas', 'groups', 'user_permissions']
+    # allowed_filiais precisa estar aqui para a caixa de seleção funcionar
+    filter_horizontal = ['papeis', 'permissoes_diretas', 'allowed_filiais']
 
-    # Organização do formulário em seções lógicas
+    # Organização do formulário
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Informacoes Pessoais', {'fields': ('first_name', 'last_name', 'email', 'pessoa_fisica')}),
-        ('Permissoes', {
-            'fields': ('ativo', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
+        
+        # CORREÇÃO 2: Removemos 'pessoa_fisica' que não existe mais
+        ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'email')}),
+        
+        ('Permissões de Acesso', {
+            # CORREÇÃO 3: Removemos 'ativo' duplicado, mantemos apenas 'is_active'
+            'fields': ('is_active', 'is_staff', 'is_superuser'),
         }),
-        ('RBAC', {
-            'fields': ('papeis', 'permissoes_diretas'),
+        
+        ('RBAC Customizado (SigFlor)', {
+            # Adicionei 'allowed_filiais' aqui para aparecer na tela
+            'fields': ('papeis', 'permissoes_diretas', 'allowed_filiais'),
         }),
-        ('Datas Importantes', {
-            'fields': ('last_login', 'date_joined', 'created_at', 'updated_at', 'deleted_at'),
+        
+        ('Auditoria e Datas', {
+            'fields': (
+                'last_login', 'date_joined', 
+                'created_at', 'updated_at', 'deleted_at',
+                'created_by', 'updated_by', 'deleted_by'
+            ),
             'classes': ('collapse',)
         }),
-        ('ID', {
+        
+        ('ID Técnico', {
             'fields': ('id',),
             'classes': ('collapse',)
         }),
     )
 
-    # Configuração para o formulário de "Adicionar Usuário"
+    # Configuração para o formulário de "Adicionar Usuário" (Tela inicial de create)
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': ('username', 'email', 'first_name', 'last_name', 'password1', 'password2'),
-        }),
-    )
-
-
-# ============ Permissao ============ #
-
-@admin.register(Permissao)
-class PermissaoAdmin(admin.ModelAdmin):
-    list_display = ['codigo', 'nome', 'created_at']
-    search_fields = ['codigo', 'nome', 'descricao']
-    readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at']
-    ordering = ['codigo']
-
-    fieldsets = (
-        ('Dados da Permissao', {
-            'fields': ('codigo', 'nome', 'descricao')
-        }),
-        ('Auditoria', {
-            'fields': ('id', 'created_at', 'updated_at', 'deleted_at'),
-            'classes': ('collapse',)
         }),
     )
 
@@ -78,15 +72,18 @@ class PermissaoAdmin(admin.ModelAdmin):
 class PapelAdmin(admin.ModelAdmin):
     list_display = ['nome', 'get_permissoes_count', 'created_at']
     search_fields = ['nome', 'descricao']
+    
+    # Auditoria completa
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at']
-    filter_horizontal = ['permissoes'] # Facilita a atribuição de muitas permissões
+    
+    filter_horizontal = ['permissoes']
     ordering = ['nome']
 
     fieldsets = (
         ('Dados do Papel', {
             'fields': ('nome', 'descricao')
         }),
-        ('Permissoes', {
+        ('Permissões Associadas', {
             'fields': ('permissoes',)
         }),
         ('Auditoria', {
@@ -95,7 +92,6 @@ class PapelAdmin(admin.ModelAdmin):
         }),
     )
 
-    # Método auxiliar para mostrar a contagem na listagem
     def get_permissoes_count(self, obj):
         return obj.permissoes.count()
-    get_permissoes_count.short_description = 'Qtd. Permissoes'
+    get_permissoes_count.short_description = 'Qtd. Permissões'

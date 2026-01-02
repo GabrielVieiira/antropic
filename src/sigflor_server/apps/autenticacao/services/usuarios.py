@@ -1,3 +1,4 @@
+from venv import create
 from django.db import transaction
 from apps.autenticacao.models import Usuario
 from rest_framework.exceptions import ValidationError
@@ -14,6 +15,7 @@ class UsuarioService:
 
         novo_usuario = Usuario.objects.create_user(
             password=password,
+            created_by=user,
             **dados_validos
         )
 
@@ -31,30 +33,29 @@ class UsuarioService:
     @staticmethod
     @transaction.atomic
     def update(*, user: Usuario, usuario_para_editar: Usuario, **dados_novos) -> Usuario:
-        
         if 'password' in dados_novos:
             del dados_novos['password']
         
-        # 1. Extraindo listas (se vier None, é porque o front não mandou alterar)
         lista_papeis = dados_novos.pop('papeis', None)
         lista_filiais = dados_novos.pop('allowed_filiais', None)
-        lista_permissoes = dados_novos.pop('permissoes_diretas', None) # <--- NOVO
+        lista_permissoes = dados_novos.pop('permissoes_diretas', None)
 
-        # 2. Atualizando campos de texto
         for campo, valor in dados_novos.items():
             if hasattr(usuario_para_editar, campo):
                 setattr(usuario_para_editar, campo, valor)
         
+        if hasattr(usuario_para_editar, 'updated_by'):
+            usuario_para_editar.updated_by = user
+
         usuario_para_editar.save()
 
-        # 3. Atualizando relacionamentos
         if lista_papeis is not None:
             usuario_para_editar.papeis.set(lista_papeis)
             
         if lista_filiais is not None:
             usuario_para_editar.allowed_filiais.set(lista_filiais)
 
-        if lista_permissoes is not None: # <--- Lógica Nova
+        if lista_permissoes is not None:
             usuario_para_editar.permissoes_diretas.set(lista_permissoes)
 
         return usuario_para_editar
@@ -62,21 +63,32 @@ class UsuarioService:
     @staticmethod
     @transaction.atomic
     def delete(*, user: Usuario, usuario_para_deletar: Usuario) -> None:
-        # Chama o método delete customizado do Model (Soft Delete)
         usuario_para_deletar.delete(user=user)
 
     @staticmethod
     @transaction.atomic
+    def restore(*, user: Usuario, usuario_para_restaurar: Usuario) -> None:
+        usuario_para_restaurar.restore(user=user)
+
+    @staticmethod
+    @transaction.atomic
     def redefinir_senha(*, user: Usuario, usuario_alvo: Usuario, nova_senha: str) -> None:
-        # set_password faz a criptografia (hash)
         usuario_alvo.set_password(nova_senha)
+        if hasattr(usuario_alvo, 'updated_by'):
+            usuario_alvo.updated_by = user
         usuario_alvo.save()
 
     @staticmethod
     @transaction.atomic
     def alterar_senha_proprio_usuario(*, user: Usuario, senha_atual: str, nova_senha: str) -> None:
+        """
+        O próprio usuário altera sua senha.
+        """
+        from rest_framework.exceptions import ValidationError
         senha_correta = user.check_password(senha_atual)
         if not senha_correta:
             raise ValidationError({"senha_atual": "A senha atual informada está incorreta."})
         user.set_password(nova_senha)
+        if hasattr(user, 'updated_by'):
+            user.updated_by = user
         user.save()

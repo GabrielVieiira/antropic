@@ -13,7 +13,7 @@ class Papel(SoftDeleteModel):
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True, default='')
     permissoes = models.ManyToManyField(
-        'autenticacao.Permissao',
+        'auth.Permission',
         blank=True,
         related_name='papeis'
     )

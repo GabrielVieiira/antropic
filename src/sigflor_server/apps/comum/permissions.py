@@ -28,7 +28,7 @@ class HasPermission(permissions.BasePermission):
             return False
 
         # Verifica se o usuário tem a permissão específica
-        return request.user and request.user.is_authenticated and request.user.tem_permissao(self.permission_code)
+        return request.user and request.user.is_authenticated and request.user.has_perm(self.permission_code)
 
     def __call__(self):
         """

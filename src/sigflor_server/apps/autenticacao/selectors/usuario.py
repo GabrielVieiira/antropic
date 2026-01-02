@@ -1,4 +1,5 @@
 from django.db.models import QuerySet, Q
+from typing import Optional
 from apps.autenticacao.models import Usuario
 
 def usuario_list(*, user: Usuario, busca: str = None, ativo: bool = None, papel_id: str = None) -> QuerySet:
@@ -19,3 +20,6 @@ def usuario_list(*, user: Usuario, busca: str = None, ativo: bool = None, papel_
         qs = qs.filter(papeis__id=papel_id)
 
     return qs.order_by('first_name')
+
+def obter_usuario_por_id(*, pk:str) -> Optional[Usuario]:
+    return Usuario.objects.get(pk=pk)

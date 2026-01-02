@@ -2,7 +2,6 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 
 from apps.comum.views.base import BaseRBACViewSet
 from apps.autenticacao.models import Usuario
@@ -24,10 +23,11 @@ class UsuarioViewSet(BaseRBACViewSet):
     permissao_delete = 'autenticacao.delete_usuario'
 
     permissoes_acoes = {
-        'redefinir_senha': 'autenticacao.change_usuario', # Só admin pode resetar senha
+        'redefinir_senha': 'autenticacao.change_usuario',
         'me': None,
         'alterar_minha_senha': None,
-        'destroy': 'autenticacao.delete_usuario'
+        'destroy': 'autenticacao.delete_usuario',
+        'restaurar': 'autenticacao.change_usuario',
     }
 
     queryset = Usuario.objects.filter(deleted_at__isnull=True)
@@ -63,9 +63,6 @@ class UsuarioViewSet(BaseRBACViewSet):
         )
 
     def perform_update(self, serializer):
-        """
-        Executado quando o PUT/PATCH é enviado para editar um usuário.
-        """
         usuario_que_sera_editado = serializer.instance
         dados_novos = serializer.validated_data
 
@@ -76,17 +73,20 @@ class UsuarioViewSet(BaseRBACViewSet):
         )
 
     def perform_destroy(self, instance):
-        """
-        Executado quando o DELETE é enviado.
-        """
         usuario_que_sera_deletado = instance
-        
         UsuarioService.delete(
             user=self.request.user,
             usuario_para_deletar=usuario_que_sera_deletado
         )
 
-    # --- ACTIONS EXTRAS ---
+    @action(detail=True, methods=['post'], url_path='restaurar')
+    def restaurar(self, request, pk=None):
+        usuario_alvo = selectors.obter_usuario_por_id(pk=pk)
+        UsuarioService.restore(
+            user=request.user,
+            usuario_para_restaurar=usuario_alvo
+        )
+        return Response({'detail': 'Usuário restaurado com sucesso.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='redefinir-senha')
     def redefinir_senha(self, request, pk=None):
@@ -94,19 +94,13 @@ class UsuarioViewSet(BaseRBACViewSet):
         Rota para Admin resetar a senha de outro usuário.
         URL: POST /api/auth/usuarios/{id}/redefinir-senha/
         """
-        # 1. Pega o usuário alvo pelo ID da URL
         usuario_alvo = self.get_object()
-        
-        # 2. Valida os dados enviados (nova_senha)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
         nova_senha = serializer.validated_data['nova_senha']
-
-        # 3. Chama o Service para criptografar e salvar
         UsuarioService.redefinir_senha(
-            user=request.user, # Quem está fazendo a ação (Admin)
-            usuario_alvo=usuario_alvo, # Quem vai ter a senha trocada
+            user=request.user,
+            usuario_alvo=usuario_alvo,
             nova_senha=nova_senha
         )
         
@@ -117,8 +111,18 @@ class UsuarioViewSet(BaseRBACViewSet):
         usuario_logado = request.user
         serializer = UsuarioListSerializer(usuario_logado)
         dados_resposta = serializer.data
-        dados_resposta['permissoes'] = usuario_logado.get_all_permissions()
+        dados_resposta['permissoes'] = list(usuario_logado.get_all_permissions())
+        dados_resposta['ip_login'] = self._obter_ip_cliente(request)
         return Response(dados_resposta, status=status.HTTP_200_OK)
+
+    def _obter_ip_cliente(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
 
     @action(detail=False, methods=['post'], url_path='alterar-minha-senha')
     def alterar_minha_senha(self, request):
