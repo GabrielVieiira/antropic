@@ -13,7 +13,6 @@ from .anexos import AnexoSerializer, AnexoNestedSerializer
 
 
 class PessoaJuridicaListSerializer(serializers.ModelSerializer):
-    """Serializer leve para listagens (sem dados aninhados)."""
     cnpj_formatado = serializers.ReadOnlyField()
     situacao_cadastral_display = serializers.CharField(
         source='get_situacao_cadastral_display', read_only=True
@@ -67,11 +66,9 @@ class PessoaJuridicaSerializer(serializers.ModelSerializer):
         ]
 
     def validate_cnpj(self, value):
-        """Remove formatação do CNPJ."""
         return ''.join(filter(str.isdigit, value))
 
 class PessoaJuridicaCreateSerializer(serializers.Serializer):
-    """Serializer para criação de Pessoa Jurídica com dados aninhados."""
 
     razao_social = serializers.CharField(max_length=200)
     nome_fantasia = serializers.CharField(max_length=200, required=False, allow_blank=True)
@@ -91,7 +88,6 @@ class PessoaJuridicaCreateSerializer(serializers.Serializer):
     anexos = AnexoNestedSerializer(many=True, required=False, allow_empty=True)
 
     def validate_cnpj(self, value):
-        """Remove formatação do CNPJ e valida."""
         cleaned_value = ''.join(filter(str.isdigit, value))
         try:
             validar_cnpj(cleaned_value)
@@ -100,7 +96,6 @@ class PessoaJuridicaCreateSerializer(serializers.Serializer):
         return cleaned_value
 
 class PessoaJuridicaUpdateSerializer(serializers.Serializer):
-    """Serializer para atualização de Pessoa Jurídica com dados aninhados."""
 
     razao_social = serializers.CharField(max_length=200, required=False)
     nome_fantasia = serializers.CharField(max_length=200, required=False, allow_blank=True)

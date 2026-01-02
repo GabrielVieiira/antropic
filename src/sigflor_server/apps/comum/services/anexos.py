@@ -6,7 +6,6 @@ from ..models import Anexo
 
 
 class AnexoService:
-    """Service layer para operações com Anexo."""
 
     @staticmethod
     @transaction.atomic
@@ -18,10 +17,8 @@ class AnexoService:
         mimetype: Optional[str] = None,
         created_by=None,
     ) -> Anexo:
-        """Cria um novo Anexo para uma entidade."""
         content_type = ContentType.objects.get_for_model(entidade)
 
-        # Extrai metadados do arquivo
         if not nome_original and hasattr(arquivo, 'name'):
             nome_original = arquivo.name
 
@@ -46,8 +43,6 @@ class AnexoService:
     @staticmethod
     @transaction.atomic
     def update(anexo: Anexo, updated_by=None, **kwargs) -> Anexo:
-        """Atualiza um Anexo existente (apenas metadados)."""
-        # Não permite alterar arquivo
         kwargs.pop('arquivo', None)
         kwargs.pop('tamanho', None)
         kwargs.pop('mimetype', None)
@@ -62,12 +57,10 @@ class AnexoService:
     @staticmethod
     @transaction.atomic
     def delete(anexo: Anexo, user=None) -> None:
-        """Soft delete de um Anexo."""
         anexo.delete(user=user)
 
     @staticmethod
     def get_anexos_por_entidade(entidade) -> list:
-        """Retorna todos os anexos de uma entidade."""
         content_type = ContentType.objects.get_for_model(entidade)
         return list(Anexo.objects.filter(
             content_type=content_type,
@@ -77,7 +70,6 @@ class AnexoService:
 
     @staticmethod
     def get_anexos_por_mimetype(entidade, mimetype: str) -> list:
-        """Retorna anexos de um tipo MIME específico."""
         content_type = ContentType.objects.get_for_model(entidade)
         return list(Anexo.objects.filter(
             content_type=content_type,

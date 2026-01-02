@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from django.core.exceptions import ValidationError as DjangoValidationError
 
 from ..models import Cliente, Empresa
 from .pessoa_juridica import (
     PessoaJuridicaSerializer, 
-    PessoaJuridicaCreateSerializer, 
+    PessoaJuridicaCreateSerializer,
+    PessoaJuridicaUpdateSerializer
 )
 
 
@@ -18,8 +18,11 @@ class ClienteListSerializer(serializers.ModelSerializer):
             'id',
             'razao_social',
             'cnpj',
-            'descricao',
             'ativo',
+            'created_at',
+            'updated_at',
+            'created_by',
+            'updated_by',
         ]
 
 class ClienteSerializer(serializers.ModelSerializer):
@@ -35,6 +38,8 @@ class ClienteSerializer(serializers.ModelSerializer):
             'ativo',
             'created_at',
             'updated_at',
+            'created_by',
+            'updated_by',
         ]
         read_only_fields = [
             'id', 'razao_social', 'nome_fantasia', 'cnpj', 'cnpj_formatado',
@@ -53,3 +58,24 @@ class ClienteCreateSerializer(serializers.ModelSerializer):
             'empresa_gestora',
             'ativo',
         ]
+
+class ClienteUpdateSerializer(serializers.ModelSerializer):
+
+    pessoa_juridica = PessoaJuridicaUpdateSerializer(required=False)
+    
+    class Meta:
+        model = Cliente
+        fields = [
+            'pessoa_juridica',
+            'descricao',
+            'empresa_gestora',
+            'ativo',
+        ]
+
+class ClienteSelectionSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source='pessoa_juridica.razao_social', read_only=True)
+    cnpj = serializers.CharField(source='pessoa_juridica.cnpj_formatado', read_only=True)
+
+    class Meta:
+        model = Cliente
+        fields = ['id', 'label', 'cnpj']

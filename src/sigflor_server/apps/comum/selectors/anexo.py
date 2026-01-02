@@ -3,7 +3,6 @@ from django.contrib.contenttypes.models import ContentType
 from ..models import Anexo
 
 def anexo_list_por_entidade(*, entidade, mimetype: str = None) -> QuerySet:
-    """Lista anexos de uma entidade."""
     content_type = ContentType.objects.get_for_model(entidade)
     qs = Anexo.objects.filter(
         content_type=content_type,

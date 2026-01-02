@@ -8,7 +8,6 @@ from ..services import AnexoService
 
 
 class AnexoViewSet(viewsets.ModelViewSet):
-    """ViewSet para Anexo."""
 
     queryset = Anexo.objects.filter(deleted_at__isnull=True)
     serializer_class = AnexoSerializer
@@ -19,8 +18,6 @@ class AnexoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Anexo.objects.filter(deleted_at__isnull=True)
-
-        # Filtros por entidade
         content_type = self.request.query_params.get('content_type')
         object_id = self.request.query_params.get('object_id')
         mimetype = self.request.query_params.get('mimetype')

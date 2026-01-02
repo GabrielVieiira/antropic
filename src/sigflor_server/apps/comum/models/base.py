@@ -13,7 +13,6 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 class AuditModel(TimeStampedModel):
-    #deixar o created_by como obrigatórios quando tiver autenticação
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True,
         on_delete=models.SET_NULL, related_name='created_%(class)ss',
@@ -43,11 +42,9 @@ class SoftDeleteModel(AuditModel):
 
         if getattr(self, 'principal', None) is not None:
             self.principal = False
-            
-        #user deve ser obrigatório quando tiver autenticação
-        if user:
-            self.deleted_by = user
-            self.updated_by = user
+
+        self.deleted_by = user
+        self.updated_by = user
         self.save(update_fields=['deleted_at', 'updated_by', 'deleted_by', 'updated_at'])
 
     def hard_delete(self,):
@@ -55,7 +52,6 @@ class SoftDeleteModel(AuditModel):
 
     def restore(self, user=None):
         self.deleted_at = None
-        #user deve ser obrigatório quando tiver autenticação
-        if user:
-            self.updated_by = user
+
+        self.updated_by = user
         self.save(update_fields=['deleted_at', 'updated_by', 'updated_at'])

@@ -6,8 +6,11 @@ from .base import BaseRBACViewSet
 from ..serializers import (
     ClienteSerializer, 
     ClienteCreateSerializer,
-    ClienteListSerializer
+    ClienteListSerializer,
+    ClienteSelectionSerializer,
+    ClienteUpdateSerializer
 )
+from ..models import Cliente
 from ..services import ClienteService
 from .. import selectors
 
@@ -19,13 +22,21 @@ class ClienteViewSet(BaseRBACViewSet):
     permissoes_acoes =  {
         'ativar': 'comum_clientes_escrever',
         'desativar': 'comum_clientes_escrever',
+        'selecao': 'comum_clientes_ler',
     }
+
+    queryset = Cliente.objects.filter(deleted_at__isnull=True)
 
     def get_serializer_class(self):
         if self.action == 'list':
             return ClienteListSerializer
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action == 'create':
             return ClienteCreateSerializer
+        if self.action in ['update', 'partial_update']:
+            return ClienteUpdateSerializer 
+        if self.action == 'selecao':
+            return ClienteSelectionSerializer
+            
         return ClienteSerializer
 
     def get_queryset(self):
@@ -40,16 +51,16 @@ class ClienteViewSet(BaseRBACViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        pessoa_juridica = serializer.validated_data.pop('pessoa_juridica')
-        descricao = pessoa_juridica.pop('descricao', '')
-        ativo = pessoa_juridica.pop('ativo', True)
-        empresa_gestora = pessoa_juridica.pop('empresa_gestora')
+        
+        dados = serializer.validated_data
+        pessoa_juridica = dados.pop('pessoa_juridica')
+        empresa_gestora = dados.pop('empresa_gestora')
+        
         cliente = ClienteService.create(
             user=request.user,
-            pessoa_juridica_data = pessoa_juridica,
-            descricao = descricao,
-            ativo = ativo,
-            empresa_gestora = empresa_gestora
+            pessoa_juridica_data=pessoa_juridica,
+            empresa_gestora=empresa_gestora,
+            **dados
         )
         output_serializer = ClienteSerializer(cliente)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
@@ -74,20 +85,26 @@ class ClienteViewSet(BaseRBACViewSet):
 
     @action(detail=True, methods=['post'])
     def ativar(self, request, pk=None):
-            cliente = self.get_object()
-            ClienteService.ativar(
-                cliente,
-                updated_by=request.user
-            )
-            serializer = self.get_serializer(cliente)
-            return Response(serializer.data)
+        cliente = self.get_object()
+        ClienteService.ativar(
+            cliente,
+            updated_by=request.user
+        )
+        serializer = self.get_serializer(cliente)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def desativar(self, request, pk=None):
-            cliente = self.get_object()
-            ClienteService.desativar(
-                cliente,
-                updated_by=request.user
-            )
-            serializer = self.get_serializer(cliente)
-            return Response(serializer.data)
+        cliente = self.get_object()
+        ClienteService.desativar(
+            cliente,
+            updated_by=request.user
+        )
+        serializer = self.get_serializer(cliente)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def selecao(self, request):
+        clientes = selectors.cliente_list_selection(user=request.user)
+        serializer = self.get_serializer(clientes, many=True)
+        return Response(serializer.data)

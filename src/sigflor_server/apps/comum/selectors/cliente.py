@@ -38,3 +38,18 @@ def cliente_detail(*, pk) -> Cliente:
         'pessoa_juridica__contatos_vinculados__contato',
         'pessoa_juridica__documentos_vinculados__documento'
     ).get(pk=pk, deleted_at__isnull=True)
+
+def cliente_list_selection(*, user, ativo: bool = True) -> QuerySet:
+    """
+    Lista leve apenas para seleção. Traz Razão Social e CNPJ.
+    """
+    qs = Cliente.objects.filter(
+        deleted_at__isnull=True,
+        ativo=ativo
+    ).select_related('pessoa_juridica').only(
+        'id', 
+        'pessoa_juridica__razao_social', 
+        'pessoa_juridica__cnpj'
+    )
+    
+    return qs.order_by('pessoa_juridica__razao_social')

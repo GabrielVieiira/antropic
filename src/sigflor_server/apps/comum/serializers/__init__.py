@@ -6,7 +6,13 @@ from .pessoa_juridica import (
     PessoaJuridicaListSerializer
 )
 from .empresas import EmpresaListSerializer, EmpresaSerializer, EmpresaCreateSerializer
-from .clientes import ClienteListSerializer, ClienteSerializer, ClienteCreateSerializer
+from .clientes import (
+    ClienteListSerializer, 
+    ClienteSerializer, 
+    ClienteCreateSerializer,
+    ClienteUpdateSerializer,
+    ClienteSelectionSerializer  
+) 
 from .enderecos import EnderecoSerializer
 from .contatos import ContatoSerializer
 from .documentos import DocumentoSerializer
@@ -41,6 +47,8 @@ __all__ = [
     'ClienteListSerializer',
     'ClienteSerializer',
     'ClienteCreateSerializer',
+    'ClienteUpdateSerializer',
+    'ClienteSelectionSerializer',
     'EnderecoSerializer',
     'ContatoSerializer',
     'DocumentoSerializer',
@@ -48,15 +56,12 @@ __all__ = [
     'DeficienciaSerializer',
     'DeficienciaListSerializer',
     'DeficienciaNestedSerializer',
-    # Filiais
     'FilialSerializer',
     'FilialCreateSerializer',
     'FilialListSerializer',
-    # Projeto
     'ProjetoSerializer',
     'ProjetoListSerializer',
     'ProjetoCreateSerializer',
     'ProjetoUpdateSerializer',
-    # Exame
     'ExameSerializer',
 ]

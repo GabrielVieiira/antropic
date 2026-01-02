@@ -17,7 +17,8 @@ class ClienteService:
         pessoa_juridica_data: dict,
         descricao: str = '',
         ativo: bool = True,
-        empresa_gestora=None
+        empresa_gestora,
+        **kwargs
     ) -> Cliente:
         
         cnpj = pessoa_juridica_data.pop('cnpj')
