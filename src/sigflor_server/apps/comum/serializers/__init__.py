@@ -5,13 +5,19 @@ from .pessoa_juridica import (
     PessoaJuridicaUpdateSerializer,
     PessoaJuridicaListSerializer
 )
-from .empresas import EmpresaListSerializer, EmpresaSerializer, EmpresaCreateSerializer
+from .empresas import (
+    EmpresaListSerializer, 
+    EmpresaSerializer, 
+    EmpresaCreateSerializer,
+    EmpresaSelecaoSerializer,
+    EmpresaUpdateSerializer
+) 
 from .clientes import (
     ClienteListSerializer, 
     ClienteSerializer, 
     ClienteCreateSerializer,
     ClienteUpdateSerializer,
-    ClienteSelectionSerializer  
+    ClienteSelecaoSerializer  
 ) 
 from .enderecos import EnderecoSerializer
 from .contatos import ContatoSerializer
@@ -25,13 +31,16 @@ from .deficiencias import (
 from .filiais import (
     FilialSerializer,
     FilialCreateSerializer,
-    FilialListSerializer
+    FilialListSerializer,
+    FilialSelecaoSerializer,
+    FilialUpdateSerializer
 )
 from .projeto import (
     ProjetoSerializer,
     ProjetoListSerializer,
     ProjetoCreateSerializer,
-    ProjetoUpdateSerializer
+    ProjetoUpdateSerializer,
+    ProjetoSelecaoSerializer
 )
 from ...sst.serializers.exame import ExameSerializer
 
@@ -44,11 +53,13 @@ __all__ = [
     'EmpresaCreateSerializer',
     'EmpresaListSerializer',
     'EmpresaSerializer',
+    'EmpresaSelecaoSerializer',
+    'EmpresaUpdateSerializer',
     'ClienteListSerializer',
     'ClienteSerializer',
     'ClienteCreateSerializer',
     'ClienteUpdateSerializer',
-    'ClienteSelectionSerializer',
+    'ClienteSelecaoSerializer',
     'EnderecoSerializer',
     'ContatoSerializer',
     'DocumentoSerializer',
@@ -59,9 +70,12 @@ __all__ = [
     'FilialSerializer',
     'FilialCreateSerializer',
     'FilialListSerializer',
+    'FilialSelecaoSerializer',
+    'FilialUpdateSerializer',
     'ProjetoSerializer',
     'ProjetoListSerializer',
     'ProjetoCreateSerializer',
     'ProjetoUpdateSerializer',
+    'ProjetoSelecaoSerializer',
     'ExameSerializer',
 ]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from rest_framework import serializers
 
 from ..models import Filial
@@ -7,8 +6,20 @@ from ..serializers.contatos import FilialContatoNestedSerializer, FilialContatoL
 from ..models.enums import StatusFilial
 
 
-class FilialSerializer(serializers.ModelSerializer):
+class FilialListSerializer(serializers.ModelSerializer):
+    empresa_nome = serializers.ReadOnlyField()
 
+    class Meta:
+        model = Filial
+        fields = [
+            'id',
+            'nome',
+            'codigo_interno',
+            'status',
+            'empresa_nome',
+        ]
+
+class FilialSerializer(serializers.ModelSerializer):
     is_ativa = serializers.ReadOnlyField()
     empresa_nome = serializers.ReadOnlyField()
     enderecos = FilialEnderecoListSerializer(many=True, read_only=True, source='enderecos_vinculados')
@@ -33,7 +44,6 @@ class FilialSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'is_ativa', 'created_at', 'updated_at']
 
 class FilialCreateSerializer(serializers.ModelSerializer):
-    
     enderecos = FilialEnderecoNestedSerializer(many=True, required=True, allow_empty=False)
     contatos = FilialContatoNestedSerializer(many=True, required=True, allow_empty=False)
 
@@ -52,16 +62,25 @@ class FilialCreateSerializer(serializers.ModelSerializer):
             'status': {'choices': StatusFilial.choices}
         }
 
-class FilialListSerializer(serializers.ModelSerializer):
-
-    empresa_nome = serializers.ReadOnlyField()
+class FilialUpdateSerializer(serializers.ModelSerializer):
+    enderecos = FilialEnderecoNestedSerializer(many=True, required=False)
+    contatos = FilialContatoNestedSerializer(many=True, required=False)
 
     class Meta:
         model = Filial
         fields = [
-            'id',
             'nome',
             'codigo_interno',
             'status',
-            'empresa_nome',
+            'descricao',
+            'empresa',
+            'contatos',
+            'enderecos',
         ]
+
+class FilialSelecaoSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source='nome', read_only=True)
+    
+    class Meta:
+        model = Filial
+        fields = ['id', 'label', 'codigo_interno']

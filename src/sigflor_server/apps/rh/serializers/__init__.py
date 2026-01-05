@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from .cargos import (
     CargoSerializer, CargoCreateSerializer,
-    CargoListSerializer, CargoUpdateSerializer
+    CargoListSerializer, CargoUpdateSerializer,
+    CargoSelecaoSerializer
 )
 from .cargo_documento import (
     CargoDocumentoSerializer, CargoDocumentoCreateSerializer,
@@ -31,6 +32,7 @@ __all__ = [
     'CargoCreateSerializer',
     'CargoListSerializer',
     'CargoUpdateSerializer',
+    'CargoSelecaoSerializer',
     'CargoDocumentoSerializer',
     'CargoDocumentoCreateSerializer',
     'CargoDocumentoListSerializer',

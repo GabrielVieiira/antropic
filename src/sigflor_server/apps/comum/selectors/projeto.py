@@ -9,73 +9,67 @@ from ..models import Projeto, StatusProjeto
 def projeto_list(
     *,
     user: Usuario,
-    filters: dict = None,
-    search: str = None
+    search: Optional[str],
+    ativo: Optional[bool],
+    filial_id: Optional[UUID],
+    cliente_id: Optional[UUID],
+    empresa_id: Optional[UUID]
 ) -> QuerySet:
-    qs = Projeto.objects.filter(deleted_at__isnull=True).select_related('cliente__pessoa_juridica', 'filial', 'empresa__pessoa_juridica')
+    
+    qs = Projeto.objects.filter(deleted_at__isnull=True).select_related(
+        'cliente__pessoa_juridica', 
+        'filial', 
+        'empresa__pessoa_juridica'
+    )
 
-    # if not user.is_superuser:
-    #     qs = qs.filter(filial__in=user.allowed_filiais.all()).distinct()
+    if ativo is not None:
+        if ativo:
+            qs = qs.filter(status=StatusProjeto.EM_EXECUCAO)
+        else:
+            qs = qs.exclude(status=StatusProjeto.EM_EXECUCAO)
 
-    if filters:
-        qs = qs.filter(**filters)
+    if filial_id:
+        qs = qs.filter(filial_id=filial_id)
+    
+    if cliente_id:
+        qs = qs.filter(cliente_id=cliente_id)
+
+    if empresa_id:
+        qs = qs.filter(empresa_id=empresa_id)
 
     if search:
         qs = qs.filter(
             Q(numero__icontains=search) |
+            Q(descricao__icontains=search) |
             Q(cliente__pessoa_juridica__nome_fantasia__icontains=search) |
             Q(filial__nome__icontains=search)
         )
 
-    return qs.order_by('numero')
+    # Permissão Regional (Opcional, descomentar se necessário)
+    # if not user.is_superuser:
+    #     qs = qs.filter(filial__in=user.allowed_filiais.all())
 
-def projeto_detail(
-    *,
-    user: Usuario,
-    pk
-) -> Projeto:
+    return qs.order_by('-created_at')
+
+def projeto_detail(*, user: Usuario, pk) -> Projeto:
     projeto = Projeto.objects.select_related(
         'cliente', 'filial', 'empresa',
         'cliente__pessoa_juridica', 'empresa__pessoa_juridica'
     ).get(pk=pk, deleted_at__isnull=True)
 
-    if not user.is_superuser:
-        if not user.allowed_filiais.filter(id=projeto.filial.id).exists():
-            raise PermissionDenied(f"Usuário não tem acesso ao projeto {projeto.numero} via filial {projeto.filial.nome}.")
+    # if not user.is_superuser:
+    #     if not user.allowed_filiais.filter(id=projeto.filial.id).exists():
+    #         raise PermissionDenied(f"Usuário não tem acesso a este projeto.")
 
     return projeto
 
-def get_by_numero(numero: str) -> Optional[Projeto]:
-    return Projeto.objects.filter(
-        numero=numero,
-        deleted_at__isnull=True
-    ).first()
-
-def list_ativos(user: Optional[Usuario] = None) -> QuerySet:
-    qs = Projeto.objects.filter(
-        status=StatusProjeto.EM_EXECUCAO,
-        deleted_at__isnull=True
-    ).select_related('cliente', 'empresa', 'filial')
-
-    if user and not user.is_superuser:
+def projeto_list_selection(*, user, ativo: bool = True) -> QuerySet:
+    qs = Projeto.objects.filter(deleted_at__isnull=True)
+    
+    if ativo:
+        qs = qs.filter(status=StatusProjeto.EM_EXECUCAO)
+        
+    if not user.is_superuser:
         qs = qs.filter(filial__in=user.allowed_filiais.all())
 
-    return qs.order_by('-created_at')
-
-def list_by_cliente(cliente_id: UUID) -> QuerySet:
-    return Projeto.objects.filter(
-        cliente_id=cliente_id,
-        deleted_at__isnull=True
-    ).select_related('empresa', 'filial').order_by('-created_at')
-
-def list_by_filial(filial_id: UUID) -> QuerySet:
-    return Projeto.objects.filter(
-        filial_id=filial_id,
-        deleted_at__isnull=True
-    ).select_related('cliente', 'empresa').order_by('-created_at')
-
-def list_by_empresa(empresa_id: UUID) -> QuerySet:
-    return Projeto.objects.filter(
-        empresa_id=empresa_id,
-        deleted_at__isnull=True
-    ).select_related('cliente', 'filial').order_by('-created_at')
+    return qs.only('id', 'numero', 'descricao').order_by('descricao')

@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 from django.db import transaction
-from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
-from ..models import Projeto
+from ..models import Projeto, StatusProjeto
 from apps.autenticacao.models import Usuario
 
 class ProjetoService:
@@ -12,28 +11,20 @@ class ProjetoService:
     def create(
         *,
         user: Usuario,
-        nome: str,
+        descricao: str,
         filial,
         **kwargs
     ) -> Projeto:
-        """
-        Cria um novo projeto vinculado a uma filial.
-        """
         
-        # Garante que 'filial' seja tratado corretamente (ID ou Objeto)
         filial_id = getattr(filial, 'id', filial)
 
         projeto = Projeto(
-            nome=nome,
+            descricao=descricao,
             filial_id=filial_id,
             created_by=user,
             **kwargs
         )
-        
-        # Validações extras podem ser feitas aqui antes de salvar
-        projeto.full_clean()
         projeto.save()
-
         return projeto
 
     @staticmethod
@@ -44,11 +35,7 @@ class ProjetoService:
         projeto: Projeto,
         **kwargs
     ) -> Projeto:
-        """
-        Atualiza dados do projeto.
-        """
         
-        # Se estiver trocando a filial do projeto
         if 'filial' in kwargs:
             nova_filial = kwargs.pop('filial')
             projeto.filial_id = getattr(nova_filial, 'id', nova_filial)
@@ -58,39 +45,34 @@ class ProjetoService:
                 setattr(projeto, attr, value)
         
         projeto.updated_by = user
-        projeto.full_clean()
         projeto.save()
+        return projeto
 
         return projeto
 
     @staticmethod
     @transaction.atomic
     def delete(*, user: Usuario, projeto: Projeto) -> None:
-        """
-        Realiza o Soft Delete do projeto.
-        """
-        # Regra de Negócio: Não pode excluir projeto com funcionários ativos?
-        # A validação de ProtectedError do Django já deve barrar se houver FK protegida,
-        # mas podemos verificar alocações ativas aqui se necessário.
+        # Muda status para cancelado antes de deletar logicamente?
+        # Ou apenas marca deleted_at. Vamos manter simples:
+        projeto.delete(user=user)
+
+    @staticmethod
+    @transaction.atomic
+    def alterar_status(
+        *, 
+        user: Usuario, 
+        projeto: Projeto, 
+        novo_status: str
+    ) -> Projeto:
+        if novo_status not in StatusProjeto.values:
+            raise ValidationError({'status': f"O status '{novo_status}' não é válido."})
+
+        if projeto.status == StatusProjeto.CONCLUIDO and novo_status == StatusProjeto.CANCELADO:
+            raise ValidationError("Não é possível cancelar um projeto já concluído.")
+
+        projeto.status = novo_status
+        projeto.updated_by = user
+        projeto.save()
         
-        projeto.deleted_at = timezone.now()
-        projeto.ativo = False
-        projeto.updated_by = user
-        projeto.save()
-
-    @staticmethod
-    @transaction.atomic
-    def ativar(*, user: Usuario, projeto: Projeto) -> Projeto:
-        projeto.ativo = True
-        projeto.updated_by = user
-        projeto.save()
-        return projeto
-
-    @staticmethod
-    @transaction.atomic
-    def desativar(*, user: Usuario, projeto: Projeto) -> Projeto:
-        # Opcional: Validar se existem alocações ativas antes de desativar
-        projeto.ativo = False
-        projeto.updated_by = user
-        projeto.save()
         return projeto

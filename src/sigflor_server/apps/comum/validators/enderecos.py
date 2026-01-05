@@ -9,9 +9,9 @@ class EnderecoValidator:
     @staticmethod
     def normalizar(instance) -> None:
         instance.logradouro = (instance.logradouro or '').strip()
-        instance.numero = (instance.numero or '').strip() or None
-        instance.complemento = (instance.complemento or '').strip() or None
-        instance.bairro = (instance.bairro or '').strip() or None
+        instance.numero = (instance.numero or '').strip() or ''
+        instance.complemento = (instance.complemento or '').strip() or ''
+        instance.bairro = (instance.bairro or '').strip() or ''
         instance.cidade = (instance.cidade or '').strip()
         instance.pais = (instance.pais or '').strip() or 'Brasil'
         instance.estado = (instance.estado or '').strip().upper()

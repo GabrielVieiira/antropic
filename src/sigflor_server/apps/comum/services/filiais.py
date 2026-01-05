@@ -13,10 +13,7 @@ from apps.autenticacao.models.usuarios import Usuario
 class FilialService:
 
     @staticmethod
-    def _check_filial_ownership_access(user: Usuario, filial: Filial):
-        """
-        Verifica se o usuário tem acesso à filial específica. Superusuários sempre têm acesso.
-        """
+    def _verificar_acesso_filial(user: Usuario, filial: Filial):
         if user.is_superuser:
             return True
         if not user.allowed_filiais.filter(id=filial.id).exists():
@@ -28,13 +25,14 @@ class FilialService:
     def create(
         *,
         user: Usuario,
-        enderecos : list,
-        contatos : list,
         nome: str,
         codigo_interno: str,
+        enderecos: list,
+        contatos: list,
         status: str = StatusFilial.ATIVA,
         descricao: str = '',
-        empresa=None
+        empresa=None,
+        **kwargs
     ) -> Filial:
 
         filial = Filial(
@@ -48,19 +46,19 @@ class FilialService:
         filial.save()
 
         if enderecos:
-            from .enderecos import EnderecoService
-            for end_data in enderecos:
+            for dados_endereco in enderecos:
                 EnderecoService.vincular_endereco_filial(
                     filial=filial,
-                    **end_data
+                    created_by=user,
+                    **dados_endereco
                 )
 
         if contatos:
-            from .contatos import ContatoService
-            for contato_data in contatos:
+            for dados_contato in contatos:
                 ContatoService.vincular_contato_filial(
                     filial=filial,
-                    **contato_data
+                    created_by=user,
+                    **dados_contato
                 )
 
         return filial
@@ -68,11 +66,8 @@ class FilialService:
     @staticmethod
     @transaction.atomic
     def update(filial: Filial, user: Usuario, **kwargs) -> Filial:
-        """
-        Atualiza uma Filial e sincroniza suas listas aninhadas.
-        """
 
-        FilialService._check_filial_ownership_access(user, filial)
+        FilialService._verificar_acesso_filial(user, filial)
 
         enderecos = kwargs.pop('enderecos', None)
         contatos = kwargs.pop('contatos', None)
@@ -111,13 +106,13 @@ class FilialService:
     @staticmethod
     @transaction.atomic
     def delete(filial: Filial, user: Usuario) -> None:
-        FilialService._check_filial_ownership_access(user, filial)
+        FilialService._verificar_acesso_filial(user, filial)
         filial.delete(user=user)
 
     @staticmethod
     @transaction.atomic
     def ativar(filial: Filial, user: Usuario) -> Filial:
-        FilialService._check_filial_ownership_access(user, filial)
+        FilialService._verificar_acesso_filial(user, filial)
         filial.status = StatusFilial.ATIVA
         filial.updated_by = user
         filial.save()
@@ -126,7 +121,7 @@ class FilialService:
     @staticmethod
     @transaction.atomic
     def desativar(filial: Filial, user: Usuario) -> Filial:
-        FilialService._check_filial_ownership_access(user, filial)
+        FilialService._verificar_acesso_filial(user, filial)
         filial.status = StatusFilial.INATIVA
         filial.updated_by = user
         filial.save()
@@ -135,7 +130,7 @@ class FilialService:
     @staticmethod
     @transaction.atomic
     def suspender(filial: Filial, user: Usuario) -> Filial:
-        FilialService._check_filial_ownership_access(user, filial)
+        FilialService._verificar_acesso_filial(user, filial)
         filial.status = StatusFilial.SUSPENSA
         filial.updated_by = user
         filial.save()

@@ -1,9 +1,9 @@
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
+from django.db import IntegrityError
 
 from django.core.exceptions import ValidationError as DjangoValidationError, ObjectDoesNotExist
-from django.http import Http404
 from django.db.models import ProtectedError
 
 def custom_exception_handler(exc, context):
@@ -36,6 +36,13 @@ def custom_exception_handler(exc, context):
                     'vinculos': [str(obj) for obj in exc.protected_objects]
                 },
                 status=status.HTTP_409_CONFLICT
+            )
+        
+        # --- Erro Genérico de Integridade (Banco de Dados) ---
+        if isinstance(exc, IntegrityError):
+            return Response(
+                {'detail': 'Erro de integridade no banco de dados. Verifique campos obrigatórios ou duplicados.'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
     return response

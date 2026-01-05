@@ -12,7 +12,6 @@ def filial_list(
     status: str = None,
     empresa_id: str = None
 ) -> QuerySet:
-    """Lista filiais com filtros opcionais, respeitando permissoes regionais do usuario."""
     qs = Filial.objects.filter(deleted_at__isnull=True)
 
     # if not user.is_superuser:
@@ -46,37 +45,18 @@ def filial_detail(*, user: Usuario, pk) -> Filial:
         'contatos_vinculados__contato'
     ).get(pk=pk, deleted_at__isnull=True)
 
-    if not user.is_superuser:
-        if not user.allowed_filiais.filter(id=filial.id).exists():
-            raise PermissionDenied(f"Usuário não tem acesso à filial {filial.nome}.")
+    # if not user.is_superuser:
+    #     if not user.allowed_filiais.filter(id=filial.id).exists():
+    #         raise PermissionDenied(f"Usuário não tem acesso à filial {filial.nome}.")
     
     return filial
 
 
-def filiais_ativas(*, user: Usuario, empresa_id: str = None) -> QuerySet:
-    """Lista filiais ativas, respeitando permissoes regionais do usuario."""
-    qs = Filial.objects.filter(
-        status=Filial.Status.ATIVA,
-        deleted_at__isnull=True
-    )
-    
-    if not user.is_superuser:
-        qs = qs.filter(id__in=user.allowed_filiais.all())
-
-    qs = qs.select_related('empresa')
-
-    if empresa_id:
-        qs = qs.filter(empresa_id=empresa_id)
-
-    return qs.order_by('nome')
-
-
 def estatisticas_filiais(*, user: Usuario) -> dict:
-    """Retorna estatisticas de filiais, respeitando permissoes regionais do usuario."""
     qs = Filial.objects.filter(deleted_at__isnull=True)
 
-    if not user.is_superuser:
-        qs = qs.filter(id__in=user.allowed_filiais.all())
+    # if not user.is_superuser:
+    #     qs = qs.filter(id__in=user.allowed_filiais.all())
 
     total = qs.count()
 
@@ -88,3 +68,17 @@ def estatisticas_filiais(*, user: Usuario) -> dict:
         'total': total,
         'por_status': list(por_status),
     }
+
+
+def filial_list_selection(*, user, ativa: bool = True) -> QuerySet:
+    qs = Filial.objects.filter(
+        deleted_at__isnull=True,
+    )
+    
+    if ativa:
+        qs = qs.filter(status=Filial.Status.ATIVA)
+
+    if not user.is_superuser:
+        qs = qs.filter(id__in=user.allowed_filiais.all())
+
+    return qs.only('id', 'nome', 'codigo_interno').order_by('nome')

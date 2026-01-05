@@ -2,12 +2,13 @@
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
+from apps.autenticacao.models import Usuario
 from apps.comum.services.utils import ServiceUtils
+from .cargo_documento import CargoDocumentoService
 from ..models import Cargo
 
 
 class CargoService:
-
     @staticmethod
     @transaction.atomic
     def create(
@@ -15,58 +16,47 @@ class CargoService:
         user: Usuario,
         nome: str,
         nivel: str,
-        documentos_exigidos: list = None, 
-        **dados_cargo
+        documentos: list = None,
+        **kwargs
     ) -> Cargo:
 
         cargo = Cargo(
             nome=nome,
             nivel=nivel,
             created_by=user,
-            **dados_cargo
+            **kwargs
         )
         cargo.save()
 
-        if documentos_exigidos:
-            from .cargo_documento import CargoDocumentoService
-            
-            for doc_data in documentos_exigidos:
+        if documentos:
+            for doc_data in documentos:
                 CargoDocumentoService.configurar_documento_para_cargo(
                     cargo=cargo,
-                    documento_tipo=doc_data['documento_tipo'],
-                    obrigatorio=doc_data.get('obrigatorio', True),
-                    condicional=doc_data.get('condicional'),
-                    created_by=user
+                    created_by=user,
+                    **doc_data
                 )
 
         return cargo
 
     @staticmethod
     @transaction.atomic
-    def update(user: Usuario, cargo: Cargo, **kwargs) -> Cargo:
-
-        documentos_exigidos = kwargs.pop('documentos_exigidos', None)
-
+    def update(cargo: Cargo, user: Usuario, **kwargs) -> Cargo:
+        documentos = kwargs.pop('documentos', None)
         for attr, value in kwargs.items():
             if hasattr(cargo, attr):
                 setattr(cargo, attr, value)
-        
         cargo.updated_by = user
         cargo.save()
-
-        if documentos_exigidos is not None:
-            from .cargo_documento import CargoDocumentoService
-
+        if documentos is not None:           
             ServiceUtils.sincronizar_lista_aninhada(
                 entidade_pai=cargo,
-                dados_lista=documentos_exigidos,
+                dados_lista=documentos,
                 service_filho=CargoDocumentoService,
                 user=user,
                 metodo_busca_existentes='get_todos_documentos_para_cargo',
-                metodo_criar='configurar_documento_para_cargo', 
+                metodo_criar='configurar_documento_para_cargo',
                 campo_entidade_pai='cargo'
             )
-
         return cargo
 
     @staticmethod
@@ -80,17 +70,17 @@ class CargoService:
 
     @staticmethod
     @transaction.atomic
-    def ativar(cargo: Cargo, user: Usuario) -> Cargo:
+    def ativar(cargo: Cargo, updated_by:Usuario) -> Cargo:
         cargo.ativo = True
-        cargo.updated_by = user
+        cargo.updated_by = updated_by
         cargo.save()
         return cargo
 
     @staticmethod
     @transaction.atomic
-    def desativar(cargo: Cargo, user: Usuario) -> Cargo:
+    def desativar(cargo: Cargo, updated_by:Usuario) -> Cargo:
         cargo.ativo = False
-        cargo.updated_by = user
+        cargo.updated_by = updated_by
         cargo.save()
         return cargo
 

@@ -1,17 +1,19 @@
-# -*- coding: utf-8 -*-
+import re
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from apps.comum.views.base import BaseRBACViewSet
 from ..models import Cargo
-from ..serializers import (
-    CargoSerializer,
-    CargoCreateSerializer,
-    CargoListSerializer,
-    FuncionarioListSerializer
+from ..serializers.cargos import (
+    CargoSerializer, 
+    CargoListSerializer, 
+    CargoCreateSerializer, 
+    CargoUpdateSerializer,
+    CargoSelecaoSerializer
 )
-from ..services import CargoService
+from ..serializers.funcionarios import FuncionarioListSerializer
+from ..services.cargos import CargoService
 from .. import selectors
 
 
@@ -32,44 +34,37 @@ class CargoViewSet(BaseRBACViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return CargoListSerializer
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action == 'create':
             return CargoCreateSerializer
+        if self.action in ['update', 'partial_update']:
+            return CargoUpdateSerializer
+        if self.action == 'selecao':
+            return CargoSelecaoSerializer
         return CargoSerializer
 
     def get_queryset(self):
-        busca = self.request.query_params.get('busca')
-        ativo = self.request.query_params.get('ativo')
+        search = self.request.query_params.get('search')
         cbo = self.request.query_params.get('cbo')
-        nivel = self.request.query_params.get('nivel')
-        com_risco = self.request.query_params.get('com_risco')
+        ativo = self.request.query_params.get('ativo')
 
         if ativo is not None:
             ativo = ativo.lower() == 'true'
-        if com_risco is not None:
-            com_risco = com_risco.lower() == 'true'
 
-        return selectors.cargo_list(
-            user=self.request.user,
-            busca=busca,
-            ativo=ativo,
-            cbo=cbo,
-            nivel=nivel,
-            com_risco=com_risco
-        )
-
+        if self.action == 'selecao':
+            return selectors.cargo_list_selection()
+            
+        return selectors.cargo_list(search=search, cbo=cbo, ativo=ativo)
+    
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        documentos_exigidos = serializer.validated_data.pop('documentos_exigidos', [])
-
+        
         cargo = CargoService.create(
             user=request.user,
-            documentos_exigidos=documentos_exigidos,
             **serializer.validated_data
         )
-        output_serializer = CargoSerializer(cargo)
-        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
-
+        return Response(CargoSerializer(cargo).data, status=status.HTTP_201_CREATED)
+    
     def perform_update(self, serializer):
         CargoService.update(
             user = self.request.user,
@@ -78,9 +73,9 @@ class CargoViewSet(BaseRBACViewSet):
         )
 
     def retrieve(self, request, pk=None):
-        cargo = selectors.cargo_detail(user=request.user, pk=pk)
+        cargo = selectors.cargo_detail(user = request.user, pk=pk)
         serializer = self.get_serializer(cargo)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_destroy(self, instance):
         CargoService.delete(instance, user=self.request.user)
@@ -107,12 +102,6 @@ class CargoViewSet(BaseRBACViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
-    def ativos(self, request):
-        cargos = selectors.cargos_ativos(user=request.user)
-        serializer = CargoListSerializer(cargos, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'])
-    def estatisticas(self, request):
-        stats = selectors.estatisticas_cargos(user=request.user)
-        return Response(stats)
+    def selecao(self, request):
+        cargos = selectors.cargo_list_selection()
+        return Response(self.get_serializer(cargos, many=True).data)

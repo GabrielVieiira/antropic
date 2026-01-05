@@ -72,7 +72,7 @@ class ClienteUpdateSerializer(serializers.ModelSerializer):
             'ativo',
         ]
 
-class ClienteSelectionSerializer(serializers.ModelSerializer):
+class ClienteSelecaoSerializer(serializers.ModelSerializer):
     label = serializers.CharField(source='pessoa_juridica.razao_social', read_only=True)
     cnpj = serializers.CharField(source='pessoa_juridica.cnpj_formatado', read_only=True)
 

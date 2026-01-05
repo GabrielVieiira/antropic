@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 import uuid
 from django.db import models
 from django.utils import timezone
-import random
 
 from .base import SoftDeleteModel
 from .enums import StatusProjeto
@@ -113,7 +111,6 @@ class Projeto(SoftDeleteModel):
         now = timezone.now()
         prefix = f"PRJ-{now.year}{now.month:02d}-"
 
-        # Busca o último número do mês atual
         last_projeto = Projeto.objects.filter(
             numero__startswith=prefix
         ).order_by('-numero').first()

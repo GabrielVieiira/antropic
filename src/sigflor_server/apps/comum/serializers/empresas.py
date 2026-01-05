@@ -4,11 +4,11 @@ from ..models import Empresa
 from .pessoa_juridica import (
     PessoaJuridicaSerializer, 
     PessoaJuridicaCreateSerializer,
+    PessoaJuridicaUpdateSerializer
 )
 
 
 class EmpresaListSerializer(serializers.ModelSerializer):
-    
     razao_social = serializers.ReadOnlyField()
     cnpj = serializers.ReadOnlyField()
 
@@ -49,3 +49,22 @@ class EmpresaCreateSerializer(serializers.ModelSerializer):
             'ativa',
         ]
         read_only_fields = ['id']
+
+class EmpresaUpdateSerializer(serializers.ModelSerializer):
+    pessoa_juridica = PessoaJuridicaUpdateSerializer(required=False)
+
+    class Meta:
+        model = Empresa
+        fields = [
+            'pessoa_juridica',
+            'descricao',
+            'ativa',
+        ]
+
+class EmpresaSelecaoSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source='pessoa_juridica.razao_social', read_only=True)
+    cnpj = serializers.CharField(source='pessoa_juridica.cnpj_formatado', read_only=True)
+
+    class Meta:
+        model = Empresa
+        fields = ['id', 'label', 'cnpj']

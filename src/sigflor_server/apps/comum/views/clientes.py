@@ -7,7 +7,7 @@ from ..serializers import (
     ClienteSerializer, 
     ClienteCreateSerializer,
     ClienteListSerializer,
-    ClienteSelectionSerializer,
+    ClienteSelecaoSerializer,
     ClienteUpdateSerializer
 )
 from ..models import Cliente
@@ -35,7 +35,7 @@ class ClienteViewSet(BaseRBACViewSet):
         if self.action in ['update', 'partial_update']:
             return ClienteUpdateSerializer 
         if self.action == 'selecao':
-            return ClienteSelectionSerializer
+            return ClienteSelecaoSerializer
             
         return ClienteSerializer
 
@@ -75,7 +75,7 @@ class ClienteViewSet(BaseRBACViewSet):
     def retrieve(self, request, pk=None):
         cliente = selectors.cliente_detail(pk=pk)
         serializer = self.get_serializer(cliente)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_destroy(self, instance):
             ClienteService.delete(
@@ -91,7 +91,7 @@ class ClienteViewSet(BaseRBACViewSet):
             updated_by=request.user
         )
         serializer = self.get_serializer(cliente)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def desativar(self, request, pk=None):
@@ -101,10 +101,10 @@ class ClienteViewSet(BaseRBACViewSet):
             updated_by=request.user
         )
         serializer = self.get_serializer(cliente)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['get'])
     def selecao(self, request):
         clientes = selectors.cliente_list_selection(user=request.user)
         serializer = self.get_serializer(clientes, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

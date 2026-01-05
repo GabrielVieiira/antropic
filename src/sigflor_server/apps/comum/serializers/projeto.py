@@ -1,11 +1,9 @@
 from rest_framework import serializers
 
-from ..models import Projeto, Cliente, Filial
-from ..models.enums import StatusProjeto
+from ..models import Projeto
 
 
 class ProjetoListSerializer(serializers.ModelSerializer):
-
     cliente_nome = serializers.ReadOnlyField()
     empresa_nome = serializers.ReadOnlyField()
     filial_nome = serializers.ReadOnlyField()
@@ -30,7 +28,6 @@ class ProjetoListSerializer(serializers.ModelSerializer):
         ]
 
 class ProjetoSerializer(serializers.ModelSerializer):
-
     cliente_nome = serializers.ReadOnlyField()
     empresa_nome = serializers.ReadOnlyField()
     filial_nome = serializers.ReadOnlyField()
@@ -63,60 +60,49 @@ class ProjetoSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
 
-class ProjetoCreateSerializer(serializers.Serializer):
-
-    descricao = serializers.CharField()
-    cliente_id = serializers.UUIDField()
-    filial_id = serializers.UUIDField()
-    data_inicio = serializers.DateField()
-    data_fim = serializers.DateField(required=False, allow_null=True)
-    status = serializers.ChoiceField(
-        choices=StatusProjeto.choices,
-        default=StatusProjeto.PLANEJADO
-    )
-
-    def validate_cliente_id(self, value):
-        if not Cliente.objects.filter(id=value, deleted_at__isnull=True).exists():
-            raise serializers.ValidationError("Cliente não encontrado ou inativo.")
-        return value
-
-    def validate_filial_id(self, value):
-        if not Filial.objects.filter(id=value, deleted_at__isnull=True).exists():
-            raise serializers.ValidationError("Filial não encontrada ou inativa.")
-        return value
-
+class ProjetoCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Projeto
+        fields = [
+            'descricao',
+            'cliente',
+            'filial',
+            'data_inicio',
+            'data_fim',
+            'status',
+        ]
+    
     def validate(self, data):
-        data_inicio = data.get('data_inicio')
-        data_fim = data.get('data_fim')
-
-        if data_fim and data_inicio and data_fim < data_inicio:
-            raise serializers.ValidationError({
-                'data_fim': "Data de término não pode ser anterior à data de início."
-            })
-
+        if data.get('data_fim') and data.get('data_inicio') and data['data_fim'] < data['data_inicio']:
+            raise serializers.ValidationError({"data_fim": "Data de término anterior ao início."})
         return data
 
-class ProjetoUpdateSerializer(serializers.Serializer):
-
-    descricao = serializers.CharField(required=False)
-    filial_id = serializers.UUIDField(required=False)
-    data_inicio = serializers.DateField(required=False)
-    data_fim = serializers.DateField(required=False, allow_null=True)
-    status = serializers.ChoiceField(choices=StatusProjeto.choices, required=False)
-
-    def validate_filial_id(self, value):
-        if value and not Filial.objects.filter(id=value, deleted_at__isnull=True).exists():
-            raise serializers.ValidationError("Filial não encontrada ou inativa.")
-        return value
+class ProjetoUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Projeto
+        fields = [
+            'descricao',
+            'filial',
+            'data_inicio',
+            'data_fim',
+            'status',
+        ]
 
     def validate(self, data):
-        data_inicio = data.get('data_inicio')
-        data_fim = data.get('data_fim')
+        inicio = data.get('data_inicio', self.instance.data_inicio if self.instance else None)
+        fim = data.get('data_fim', self.instance.data_fim if self.instance else None)
 
-        # Se ambas são fornecidas, validar
-        if data_fim and data_inicio and data_fim < data_inicio:
-            raise serializers.ValidationError({
-                'data_fim': "Data de término não pode ser anterior à data de início."
-            })
-
+        if fim and inicio and fim < inicio:
+            raise serializers.ValidationError({"data_fim": "Data de término anterior ao início."})
         return data
+
+class ProjetoSelecaoSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source='descricao', read_only=True)
+    display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Projeto
+        fields = ['id', 'label', 'numero', 'display']
+
+    def get_display(self, obj):
+        return f"{obj.numero} - {obj.descricao}"

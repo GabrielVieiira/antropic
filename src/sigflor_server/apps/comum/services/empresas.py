@@ -14,7 +14,8 @@ class EmpresaService:
         user: Usuario, 
         pessoa_juridica_data: dict,
         descricao: str = '',
-        ativa: bool = True
+        ativa: bool = True,
+        **kwargs
     ) -> Empresa:
         
         cnpj = pessoa_juridica_data.pop('cnpj')
@@ -25,7 +26,6 @@ class EmpresaService:
             **pessoa_juridica_data 
         )
 
-        # Verifica se essa PJ já está vinculada a outra Empresa (regra de unicidade 1:1)
         if hasattr(pessoa_juridica, 'empresa') and pessoa_juridica.empresa:
             raise ValidationError("Esta Pessoa Jurídica já está vinculada a uma Empresa do grupo.")
 
@@ -40,10 +40,7 @@ class EmpresaService:
 
     @staticmethod
     @transaction.atomic
-    def update(empresa: Empresa, updated_by=None, **kwargs) -> Empresa:
-        """Atualiza uma Empresa e seus dados vinculados de Pessoa Jurídica."""
-        
-        # 1. Extrair dados da Pessoa Jurídica (se houver)
+    def update(empresa: Empresa, updated_by:Usuario, **kwargs) -> Empresa:
         pessoa_juridica_data = kwargs.pop('pessoa_juridica', None)
 
         for attr, value in kwargs.items():
@@ -51,7 +48,7 @@ class EmpresaService:
                 setattr(empresa, attr, value)
         empresa.updated_by = updated_by
         empresa.save()
-        # 3. Delegar atualização da Pessoa Jurídica (incluindo listas aninhadas)
+
         if pessoa_juridica_data:
             PessoaJuridicaService.update(
                 pessoa=empresa.pessoa_juridica,
@@ -63,6 +60,21 @@ class EmpresaService:
 
     @staticmethod
     @transaction.atomic
-    def delete(empresa: Empresa, user=None) -> None:
-        """Soft delete de uma Empresa."""
+    def delete(empresa: Empresa, user:Usuario) -> None:
         empresa.delete(user=user)
+
+    @staticmethod
+    @transaction.atomic
+    def ativar(empresa: Empresa, updated_by:Usuario) -> Empresa:
+        empresa.ativa = True
+        empresa.updated_by = updated_by
+        empresa.save()
+        return empresa
+
+    @staticmethod
+    @transaction.atomic
+    def desativar(empresa: Empresa, updated_by:Usuario) -> Empresa:
+        empresa.ativa = False
+        empresa.updated_by = updated_by
+        empresa.save()
+        return empresa
