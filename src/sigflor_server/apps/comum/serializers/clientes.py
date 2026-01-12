@@ -19,10 +19,6 @@ class ClienteListSerializer(serializers.ModelSerializer):
             'razao_social',
             'cnpj',
             'ativo',
-            'created_at',
-            'updated_at',
-            'created_by',
-            'updated_by',
         ]
 
 class ClienteSerializer(serializers.ModelSerializer):

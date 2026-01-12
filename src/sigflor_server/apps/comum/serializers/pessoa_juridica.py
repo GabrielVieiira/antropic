@@ -80,7 +80,6 @@ class PessoaJuridicaCreateSerializer(serializers.Serializer):
         required=False
     )
     observacoes = serializers.CharField(required=False, allow_blank=True)
-
     enderecos = PessoaJuridicaEnderecoNestedSerializer(many=True, required=True, allow_empty=False)
     contatos = PessoaJuridicaContatoNestedSerializer(many=True, required=True, allow_empty=False)
     documentos = PessoaJuridicaDocumentoNestedSerializer(many=True, required=True, allow_empty=True)

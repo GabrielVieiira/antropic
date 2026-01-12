@@ -6,7 +6,6 @@ from ..models import Filial
 from ..models.enums import StatusFilial
 from .enderecos import EnderecoService
 from .contatos import ContatoService
-from .utils import ServiceUtils
 from apps.autenticacao.models.usuarios import Usuario
 
 
@@ -82,6 +81,11 @@ class FilialService:
         if enderecos is not None:
             EnderecoService.atualizar_enderecos_filial(
                 filial, enderecos, user
+            )
+
+        if contatos is not None:
+            ContatoService.atualizar_contatos_filial(
+                filial, contatos, user
             )
 
         return filial

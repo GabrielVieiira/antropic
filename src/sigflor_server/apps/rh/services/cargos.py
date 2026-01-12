@@ -3,7 +3,6 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 
 from apps.autenticacao.models import Usuario
-from apps.comum.services.utils import ServiceUtils
 from .cargo_documento import CargoDocumentoService
 from ..models import Cargo
 
@@ -47,16 +46,9 @@ class CargoService:
                 setattr(cargo, attr, value)
         cargo.updated_by = user
         cargo.save()
+
         if documentos is not None:           
-            ServiceUtils.sincronizar_lista_aninhada(
-                entidade_pai=cargo,
-                dados_lista=documentos,
-                service_filho=CargoDocumentoService,
-                user=user,
-                metodo_busca_existentes='get_todos_documentos_para_cargo',
-                metodo_criar='configurar_documento_para_cargo',
-                campo_entidade_pai='cargo'
-            )
+            ...
         return cargo
 
     @staticmethod

@@ -36,8 +36,8 @@ class PessoaFisicaContatoSerializer(serializers.ModelSerializer):
     contato = ContatoSerializer(read_only=True)
     contato_id = serializers.UUIDField(write_only=True, required=False)
     tem_whatsapp = serializers.BooleanField(source='contato.tem_whatsapp', read_only=True)
-    created_by = UsuarioResumoSerializer()
-    updated_by = UsuarioResumoSerializer()
+    created_by = UsuarioResumoSerializer(read_only=True)
+    updated_by = UsuarioResumoSerializer(read_only=True)
 
     class Meta:
         model = PessoaFisicaContato
@@ -110,8 +110,8 @@ class PessoaJuridicaContatoSerializer(serializers.ModelSerializer):
     contato = ContatoSerializer(read_only=True)
     contato_id = serializers.UUIDField(write_only=True, required=False)
     tem_whatsapp = serializers.BooleanField(source='contato.tem_whatsapp', read_only=True)
-    created_by = UsuarioResumoSerializer()
-    updated_by = UsuarioResumoSerializer()
+    created_by = UsuarioResumoSerializer(read_only=True)
+    updated_by = UsuarioResumoSerializer(read_only=True)
 
     class Meta:
         model = PessoaJuridicaContato
@@ -126,7 +126,7 @@ class PessoaJuridicaContatoSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'contato', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'contato', 'created_at', 'updated_at',]
 
 
 class PessoaJuridicaContatoListSerializer(serializers.ModelSerializer):
@@ -149,8 +149,8 @@ class PessoaJuridicaContatoNestedSerializer(PessoaJuridicaContatoSerializer):
     tem_whatsapp = serializers.BooleanField(required=False)
 
     class Meta(PessoaJuridicaContatoSerializer.Meta):
-        fields = PessoaJuridicaContatoSerializer.Meta.fields + ['tipo', 'valor', 'tem_whatsapp']
-        read_only_fields = ['created_at', 'updated_at', 'contato']
+        fields = PessoaJuridicaContatoSerializer.Meta.fields + ['tipo', 'valor', 'tem_whatsapp',]
+        read_only_fields = ['created_at', 'updated_at', 'contato',]
 
     def validate(self, data):
         item_id = data.get('id')
@@ -181,8 +181,8 @@ class FilialContatoSerializer(serializers.ModelSerializer):
     contato = ContatoSerializer(read_only=True)
     contato_id = serializers.UUIDField(write_only=True, required=False)
     tem_whatsapp = serializers.BooleanField(source='contato.tem_whatsapp', read_only=True)
-    created_by = UsuarioResumoSerializer()
-    updated_by = UsuarioResumoSerializer()
+    created_by = UsuarioResumoSerializer(read_only=True)
+    updated_by = UsuarioResumoSerializer(read_only=True)
 
     class Meta:
         model = FilialContato

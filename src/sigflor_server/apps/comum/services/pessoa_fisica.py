@@ -8,7 +8,6 @@ from .contatos import ContatoService
 from .documentos import DocumentoService
 from .anexos import AnexoService
 from .deficiencias import DeficienciaService
-from .utils import ServiceUtils
 
 
 class PessoaFisicaService:
@@ -107,48 +106,22 @@ class PessoaFisicaService:
                 pessoa, enderecos, updated_by
             )
 
-        # if contatos is not None:
-        #     ServiceUtils.sincronizar_lista_aninhada(
-        #         entidade_pai=pessoa,
-        #         dados_lista=contatos,
-        #         service_filho=ContatoService,
-        #         user=updated_by,
-        #         metodo_busca_existentes='get_contatos_pessoa_fisica',
-        #         metodo_criar='vincular_contato_pessoa_fisica',
-        #         campo_entidade_pai='pessoa_fisica'
-        #     )
+        if contatos is not None:
+            ContatoService.atualizar_contatos_pessoa_fisica(
+                pessoa, contatos, updated_by
+            )
 
-        # if documentos is not None:
-        #     ServiceUtils.sincronizar_lista_aninhada(
-        #         entidade_pai=pessoa,
-        #         dados_lista=documentos,
-        #         service_filho=DocumentoService,
-        #         user=updated_by,
-        #         metodo_busca_existentes='get_documentos_pessoa_fisica',
-        #         metodo_criar='vincular_documento_pessoa_fisica',
-        #         campo_entidade_pai='pessoa_fisica'
-        #     )
+        if documentos is not None:
+            ...
 
-        # if anexos is not None:
-        #     ServiceUtils.sincronizar_lista_aninhada(
-        #         entidade_pai=pessoa,
-        #         dados_lista=anexos,
-        #         service_filho=AnexoService,
-        #         user=updated_by,
-        #         metodo_busca_existentes='get_anexos_por_entidade',
-        #         # Defaults: metodo_criar='create', campo_entidade_pai='entidade'
-        #     )
+        if anexos is not None:
+            ...
 
-        # if deficiencias is not None:
-        #     ServiceUtils.sincronizar_lista_aninhada(
-        #         entidade_pai=pessoa,
-        #         dados_lista=deficiencias,
-        #         service_filho=DeficienciaService,
-        #         user=updated_by,
-        #         metodo_busca_existentes='get_deficiencias_pessoa_fisica',
-        #         metodo_criar='create',
-        #         campo_entidade_pai='pessoa_fisica'
-        #     )
+        if deficiencias is not None:
+            DeficienciaService.atualizar_deficiencias_pessoa_fisica(
+                pessoa, deficiencias, updated_by
+            )
+
 
         return pessoa
 

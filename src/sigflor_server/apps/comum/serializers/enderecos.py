@@ -200,8 +200,8 @@ class PessoaJuridicaEnderecoNestedSerializer(PessoaJuridicaEnderecoSerializer):
 class FilialEnderecoSerializer(serializers.ModelSerializer):
     endereco = EnderecoSerializer(read_only=True)
     tipo_display = serializers.CharField(source='get_tipo_display', read_only=True)
-    created_by = UsuarioResumoSerializer()
-    updated_by = UsuarioResumoSerializer()
+    created_by = UsuarioResumoSerializer(read_only=True)
+    updated_by = UsuarioResumoSerializer(read_only=True)
 
     class Meta:
         model = FilialEndereco
@@ -211,6 +211,8 @@ class FilialEnderecoSerializer(serializers.ModelSerializer):
             'tipo',
             'tipo_display',
             'principal',
+            'created_by',
+            'updated_by',
             'created_at',
             'updated_at',
         ]

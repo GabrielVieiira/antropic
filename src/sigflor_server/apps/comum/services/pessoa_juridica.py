@@ -8,7 +8,6 @@ from .contatos import ContatoService
 from .documentos import DocumentoService
 from .anexos import AnexoService
 from apps.autenticacao.models import Usuario
-from .utils import ServiceUtils
 
 
 class PessoaJuridicaService:
@@ -30,7 +29,7 @@ class PessoaJuridicaService:
         documentos: List[Dict[str, Any]] = None,
         anexos: List[Dict[str, Any]] = None,
     ) -> PessoaJuridica:
-        
+        print('cheguei até aqui!!')
         pessoa = PessoaJuridica(
             razao_social=razao_social,
             cnpj=cnpj,
@@ -42,7 +41,7 @@ class PessoaJuridicaService:
             created_by=created_by,
         )
         pessoa.save()
-
+        
         if enderecos:
             for end_data in enderecos:
                 EnderecoService.vincular_endereco_pessoa_juridica(
@@ -144,7 +143,6 @@ class PessoaJuridicaService:
             # raise ValidationError({
             #     'cnpj': "Esta Pessoa Jurídica já está cadastrada no sistema."
             # })
-
         defaults['cnpj'] = cnpj_limpo
         defaults['created_by'] = created_by
         return PessoaJuridicaService.create(**defaults), True
